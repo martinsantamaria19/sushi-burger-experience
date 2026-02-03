@@ -289,6 +289,34 @@
             color: var(--color-price);
         }
 
+        .btn-add-cart {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: var(--color-btn-bg);
+            border: 1px solid var(--color-btn-bg);
+            color: var(--color-btn-text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-add-cart:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(var(--color-btn-bg-rgb), 0.4);
+        }
+
+        .btn-add-cart:active {
+            transform: scale(0.95);
+        }
+
+        .btn-add-cart i {
+            width: 20px;
+            height: 20px;
+        }
+
         .btn-add {
             width: 42px;
             height: 42px;
@@ -307,6 +335,63 @@
         }
 
         /* --- Social & Floating --- */
+        /* Cart Floating Button */
+        .cart-floating-btn {
+            position: fixed;
+            bottom: 100px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: var(--color-btn-bg);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-btn-text);
+            box-shadow: 0 8px 24px rgba(var(--color-btn-bg-rgb), 0.4);
+            z-index: 999;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            border: none;
+        }
+
+        .cart-floating-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 32px rgba(var(--color-btn-bg-rgb), 0.5);
+            color: var(--color-btn-text);
+        }
+
+        .cart-floating-btn i {
+            width: 24px;
+            height: 24px;
+        }
+
+        .cart-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: #dc3545;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            border: 2px solid var(--color-bg);
+        }
+
+        @media (max-width: 768px) {
+            .cart-floating-btn {
+                bottom: max(100px, env(safe-area-inset-bottom, 0px) + 100px);
+                right: 15px;
+                width: 56px;
+                height: 56px;
+            }
+        }
+
         .floating-social {
             position: fixed;
             bottom: 30px;
@@ -420,6 +505,9 @@
                                 <p class="product-desc">{{ $product->description }}</p>
                                 <div class="product-footer">
                                     <span class="product-price">${{ number_format($product->price, 0, ',', '.') }}</span>
+                                    <button class="btn-add-cart" data-product-id="{{ $product->id }}" data-product-name="{{ $product->name }}" data-product-price="{{ $product->price }}" title="Agregar al carrito">
+                                        <i data-lucide="shopping-cart"></i>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -430,6 +518,12 @@
     @endforeach
 
 </main>
+
+<!-- Cart Floating Button -->
+<a href="{{ route('cart.index') }}" class="cart-floating-btn" id="cartFloatingBtn" title="Ver carrito">
+    <i data-lucide="shopping-cart"></i>
+    <span class="cart-badge" id="cartBadge" style="display: none;">0</span>
+</a>
 
 <!-- Social Floating -->
 <div class="floating-social">
@@ -529,6 +623,108 @@
     }, observerOptions);
 
     sections.forEach(section => observer.observe(section));
+
+    // Cart functionality
+    const cartButtons = document.querySelectorAll('.btn-add-cart');
+    const cartBadge = document.getElementById('cartBadge');
+    const cartFloatingBtn = document.getElementById('cartFloatingBtn');
+
+    // Load cart count on page load
+    function updateCartBadge() {
+        // Use relative URL to avoid mixed content issues with ngrok/HTTPS
+        fetch('/cart/total', {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.count > 0) {
+                    cartBadge.textContent = data.count;
+                    cartBadge.style.display = 'flex';
+                } else {
+                    cartBadge.style.display = 'none';
+                }
+            })
+            .catch(error => console.error('Error loading cart:', error));
+    }
+
+    // Add to cart
+    cartButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const productId = this.dataset.productId;
+            const productName = this.dataset.productName;
+            const productPrice = this.dataset.productPrice;
+
+            // Disable button temporarily
+            this.disabled = true;
+            const originalHTML = this.innerHTML;
+            this.innerHTML = '<i data-lucide="loader-2" style="width: 20px; height: 20px;"></i>';
+            lucide.createIcons();
+
+            // Use relative URL to avoid mixed content issues with ngrok/HTTPS
+            fetch('/cart/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    product_id: productId,
+                    quantity: 1
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update badge
+                    updateCartBadge();
+
+                    // Show success message
+                    MenuSwal.fire({
+                        icon: 'success',
+                        title: '¡Agregado!',
+                        text: data.message,
+                        timer: 2000,
+                        showConfirmButton: false,
+                        toast: true,
+                        position: 'top-end'
+                    });
+
+                    // Animate button
+                    this.style.transform = 'scale(1.2)';
+                    setTimeout(() => {
+                        this.style.transform = 'scale(1)';
+                    }, 200);
+                } else {
+                    MenuSwal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.message || 'No se pudo agregar al carrito'
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                MenuSwal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Ocurrió un error al agregar al carrito'
+                });
+            })
+            .finally(() => {
+                this.disabled = false;
+                this.innerHTML = originalHTML;
+                lucide.createIcons();
+            });
+        });
+    });
+
+    // Initialize cart badge
+    updateCartBadge();
 </script>
 
 <!-- Footer para evitar que la barra del navegador móvil tape contenido -->
@@ -552,7 +748,7 @@
         font-size: 0.75rem;
         padding: 0 20px;
     ">
-        <p style="margin: 0; opacity: 0.6;">Powered by Cartify - Creá tu menú digital <a href="https://cartify.uy" target="_blank" style="color: var(--color-primary); text-decoration: none; font-weight: 800;">aquí</a></p>
+        <p style="margin: 0; opacity: 0.6;">Powered by Sushi Burger Experience</p>
     </div>
 </footer>
 

@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: cartify_app
+    container_name: sushiburgerexperience_app
     working_dir: /var/www
     volumes:
       - ./backend:/var/www
@@ -14,7 +14,7 @@ services:
 
   nginx:
     image: nginx:alpine
-    container_name: cartify_nginx
+    container_name: sushiburgerexperience_nginx
     ports:
       - "8080:80"
     volumes:

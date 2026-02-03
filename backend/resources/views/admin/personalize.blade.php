@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Personalizar - Cartify')
+@section('title', 'Personalizar - Sushi Burger Experience')
 @section('page_title', 'Personalización de Marca')
 
 @section('content')
@@ -131,7 +131,7 @@
                         <label class="form-label">Instagram</label>
                         <div class="input-group">
                             <span class="input-group-text bg-transparent border-end-0" style="border-color: var(--color-border);"><i data-lucide="instagram" class="text-danger" style="width: 16px;"></i></span>
-                            <input type="text" name="instagram" class="form-control-cartify border-start-0 w-100" placeholder="Ej: @cartify.app" value="{{ $activeRestaurant->settings['instagram'] ?? '' }}">
+                            <input type="text" name="instagram" class="form-control-cartify border-start-0 w-100" placeholder="Ej: @sushiburger" value="{{ $activeRestaurant->settings['instagram'] ?? '' }}">
                         </div>
                     </div>
 

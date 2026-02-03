@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Menú - Cartify')
+@section('title', 'Menú - Sushi Burger Experience')
 @section('page_title', 'Gestión de Menú')
 
 @section('content')

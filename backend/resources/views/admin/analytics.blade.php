@@ -1,11 +1,11 @@
 @extends('layouts.admin')
 
-@section('title', 'Analytics - Cartify')
+@section('title', 'Analytics - Sushi Burger Experience')
 @section('page_title', 'Analytics')
 
 @section('content')
 <div class="p-5 rounded-4 text-center" style="background: var(--color-surface); border: 1px solid var(--color-border);">
-    <div class="d-inline-flex align-items-center justify-content-center bg-accent-light rounded-circle mb-4" 
+    <div class="d-inline-flex align-items-center justify-content-center bg-accent-light rounded-circle mb-4"
          style="width: 80px; height: 80px; background: rgba(219, 39, 119, 0.1);">
         <i data-lucide="trending-up" style="color: var(--color-accent); width: 40px; height: 40px;"></i>
     </div>

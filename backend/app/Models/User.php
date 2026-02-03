@@ -192,4 +192,12 @@ class User extends Authenticatable
         return $query->where('is_owner', false)
             ->where('is_blocked', true);
     }
+
+    /**
+     * Get all orders placed by this user.
+     */
+    public function orders(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Order::class);
+    }
 }

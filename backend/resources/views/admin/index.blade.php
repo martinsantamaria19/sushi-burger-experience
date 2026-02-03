@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Dashboard - Cartify')
+@section('title', 'Dashboard - Sushi Burger Experience')
 @section('page_title', 'Dashboard')
 
 @section('content')

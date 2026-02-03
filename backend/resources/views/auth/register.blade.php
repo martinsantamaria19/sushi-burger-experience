@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Registro - Cartify')
+@section('title', 'Registro - Sushi Burger Experience')
 
 @section('content')
 <div class="glass-card">
@@ -12,7 +12,7 @@
 
     <form method="POST" action="{{ route('register') }}">
         @csrf
-        
+
         <div class="mb-3">
             <label for="name" class="form-label">Nombre Completo</label>
             <input type="text" id="name" name="name" class="form-control-cartify w-100" placeholder="Tu nombre" value="{{ old('name') }}" required autofocus>

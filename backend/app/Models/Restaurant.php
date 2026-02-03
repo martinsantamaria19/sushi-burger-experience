@@ -72,6 +72,27 @@ class Restaurant extends Model
         return $this->hasMany(QrCode::class);
     }
 
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class);
+    }
+
+    /**
+     * Get the bank accounts for this restaurant.
+     */
+    public function bankAccounts(): HasMany
+    {
+        return $this->hasMany(BankAccount::class);
+    }
+
+    /**
+     * Get the active bank account for this restaurant.
+     */
+    public function activeBankAccount(): HasMany
+    {
+        return $this->hasMany(BankAccount::class)->where('is_active', true);
+    }
+
     /**
      * Check if restaurant is available (active and not blocked).
      */

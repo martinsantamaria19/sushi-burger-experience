@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>@yield('title', 'Cartify Admin')</title>
+    <title>@yield('title', 'Sushi Burger Experience Admin')</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -217,7 +217,7 @@
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <a href="{{ route('admin.dashboard') }}" class="logo">Cartify<span class="dot">.</span></a>
+            <a href="{{ route('admin.dashboard') }}" class="logo">Sushi Burger<span class="dot">.</span></a>
             <button class="sidebar-toggle-btn" id="sidebarToggle" type="button" aria-label="Toggle sidebar">
                 <i data-lucide="panel-left-close" style="width: 18px; height: 18px;"></i>
             </button>
@@ -236,6 +236,10 @@
                 <i data-lucide="utensils-crossed"></i>
                 <span>Menú</span>
             </a>
+            <a href="{{ route('admin.orders.index') }}" class="nav-item-cartify {{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
+                <i data-lucide="shopping-cart"></i>
+                <span>Pedidos</span>
+            </a>
             <a href="{{ route('admin.qrs') }}" class="nav-item-cartify {{ request()->routeIs('admin.qrs') ? 'active' : '' }}">
                 <i data-lucide="qr-code"></i>
                 <span>Códigos QR</span>
@@ -247,6 +251,10 @@
             <a href="{{ route('admin.settings') }}" class="nav-item-cartify {{ request()->routeIs('admin.settings') ? 'active' : '' }}">
                 <i data-lucide="settings"></i>
                 <span>Configuración</span>
+            </a>
+            <a href="{{ route('admin.mercadopago.index') }}" class="nav-item-cartify {{ request()->routeIs('admin.mercadopago.*') ? 'active' : '' }}">
+                <i data-lucide="credit-card"></i>
+                <span>MercadoPago</span>
             </a>
             @php
                 $user = Auth::user();
@@ -425,7 +433,7 @@
         </div>
         @endif
 
-        <header class="cartify-navbar d-flex align-items-center justify-content-between px-4">
+        <header class="sbe-navbar cartify-navbar d-flex align-items-center justify-content-between px-4">
             <!-- Botón hamburguesa para mobile -->
             <button class="mobile-menu-toggle" id="mobileMenuToggle" type="button" aria-label="Toggle menu">
                 <i data-lucide="menu" style="width: 24px; height: 24px;"></i>

@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Códigos QR - Cartify')
+@section('title', 'Códigos QR - Sushi Burger Experience')
 @section('page_title', 'Mis Códigos QR')
 
 @section('content')

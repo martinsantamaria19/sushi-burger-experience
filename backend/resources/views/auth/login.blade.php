@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Login - Cartify')
+@section('title', 'Login - Sushi Burger Experience')
 
 @section('content')
 <div class="glass-card auth-card">
@@ -46,7 +46,7 @@
 
     <form method="POST" action="{{ route('login') }}">
         @csrf
-        
+
         <div class="mb-3 staggered-item staggered-2">
             <label for="email" class="form-label">Correo Electrónico</label>
             <input type="email" id="email" name="email" class="form-control-cartify w-100" placeholder="tu@email.com" value="{{ old('email', session('user_email')) }}" required autofocus>

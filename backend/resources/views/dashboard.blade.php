@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Dashboard - Cartify')
+@section('title', 'Dashboard - Sushi Burger Experience')
 
 @section('content')
 <div class="card" style="max-width: 400px; text-align: center; padding: 3rem;">
@@ -15,7 +15,7 @@
             </defs>
         </svg>
     </div>
-    
+
     <h2 class="t-gradient" style="font-size: 1.5rem; font-weight: 700;">Redirigiéndote...</h2>
     <p style="color: var(--color-text-muted); font-size: 0.9rem; margin-top: 0.5rem;">Estamos preparando todo...</p>
 </div>

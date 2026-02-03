@@ -5,13 +5,13 @@ window.bootstrap = bootstrap;
 import Swal from 'sweetalert2';
 window.Swal = Swal;
 
-// Configuración global de SweetAlert2 para Cartify
-const CartifySwal = Swal.mixin({
+// Configuración global de SweetAlert2 para Sushi Burger Experience
+const SBESwal = Swal.mixin({
     customClass: {
-        popup: 'cartify-swal-popup',
-        title: 'cartify-swal-title',
-        confirmButton: 'btn-cartify-primary px-4 py-2',
-        cancelButton: 'btn-cartify-secondary px-4 py-2 ms-2',
+        popup: 'sbe-swal-popup',
+        title: 'sbe-swal-title',
+        confirmButton: 'btn-sbe-primary px-4 py-2',
+        cancelButton: 'btn-sbe-secondary px-4 py-2 ms-2',
     },
     buttonsStyling: false,
     background: 'var(--color-surface)',
@@ -19,7 +19,9 @@ const CartifySwal = Swal.mixin({
     confirmButtonColor: 'var(--color-primary)',
 });
 
-window.CartifySwal = CartifySwal;
+window.SBESwal = SBESwal;
+// Mantener compatibilidad con referencias antiguas
+window.CartifySwal = SBESwal;
 
 // Helper para Toasts
 window.Toast = Swal.mixin({

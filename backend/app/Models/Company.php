@@ -69,6 +69,14 @@ class Company extends Model
     {
         return $this->belongsTo(SubscriptionPlan::class, 'plan_id');
     }
+
+    /**
+     * Get the MercadoPago account for this company.
+     */
+    public function mercadopagoAccount(): HasOne
+    {
+        return $this->hasOne(MercadoPagoAccount::class);
+    }
 }
 
 

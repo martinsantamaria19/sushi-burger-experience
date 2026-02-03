@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Usuarios - Cartify')
+@section('title', 'Usuarios - Sushi Burger Experience')
 @section('page_title', 'Usuarios del Sistema')
 
 @section('content')
@@ -161,41 +161,41 @@
             if (userName) userName.value = user.name || '';
             const userEmail = document.getElementById('userEmail');
             if (userEmail) userEmail.value = user.email || '';
-            
+
             const modalTitle = document.getElementById('userModalTitle');
             if (modalTitle) {
                 modalTitle.innerText = user.id == {{ Auth::id() }} ? 'Editar mi Perfil' : 'Editar Usuario';
             }
-            
+
             const submitBtn = document.getElementById('userSubmitBtn');
             if (submitBtn) submitBtn.innerText = 'Guardar Cambios';
-            
+
             const passwordLabel = document.getElementById('passwordLabel');
             if (passwordLabel) passwordLabel.innerText = 'Nueva Contraseña';
-            
+
             const passwordHelp = document.getElementById('passwordHelp');
             if (passwordHelp) {
                 passwordHelp.style.display = 'block';
                 passwordHelp.style.visibility = 'visible';
                 passwordHelp.innerText = 'Deja en blanco si no deseas cambiar la contraseña';
             }
-            
+
             const passwordField = document.getElementById('userPassword');
             if (passwordField) {
                 passwordField.required = false;
                 passwordField.placeholder = 'Deja en blanco para mantener la actual';
                 passwordField.value = '';
             }
-            
+
             const passwordConfirmDiv = document.getElementById('passwordConfirmDiv');
             if (passwordConfirmDiv) passwordConfirmDiv.style.display = 'block';
-            
+
             const passwordConfirmField = document.getElementById('userPasswordConfirm');
             if (passwordConfirmField) {
                 passwordConfirmField.required = false;
                 passwordConfirmField.value = '';
             }
-            
+
             if (userModal) userModal.show();
         }
 

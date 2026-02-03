@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Configuración - Cartify')
+@section('title', 'Configuración - Sushi Burger Experience')
 @section('page_title', 'Configuración')
 
 @section('content')
@@ -8,7 +8,7 @@
     <div class="col-12 col-lg-8">
         <div class="p-4 p-md-5 rounded-4" style="background: var(--color-surface); border: 1px solid var(--color-border);">
             <h3 class="h5 fw-bold mb-4 pb-3 border-bottom" style="border-color: var(--color-border) !important;">General</h3>
-            
+
             <form id="settingsForm">
                 <div class="row g-4 align-items-center mb-4">
                     <div class="col-md-4">
@@ -18,7 +18,7 @@
                         <input type="text" class="form-control-cartify w-100" name="name" id="companyName" value="{{ $company->name ?? '' }}" required>
                     </div>
                 </div>
-                
+
                 <div class="row g-4 align-items-center mb-4 text-white">
                     <div class="col-md-4">
                         <label class="form-label mb-md-0">Moneda</label>
@@ -57,7 +57,7 @@
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+
             const formData = {
                 name: document.getElementById('companyName').value,
                 currency: document.getElementById('companyCurrency').value,

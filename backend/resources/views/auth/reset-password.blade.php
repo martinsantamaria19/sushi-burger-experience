@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Restablecer Contraseña - Cartify')
+@section('title', 'Restablecer Contraseña - Sushi Burger Experience')
 
 @section('content')
 <div class="glass-card auth-card">
@@ -26,7 +26,7 @@
         @csrf
         <input type="hidden" name="token" value="{{ $token }}">
         <input type="hidden" name="email" value="{{ $email }}">
-        
+
         <div class="mb-3 staggered-item staggered-2">
             <label for="email" class="form-label">Correo Electrónico</label>
             <input type="email" id="email-display" class="form-control-cartify w-100" value="{{ $email }}" disabled>

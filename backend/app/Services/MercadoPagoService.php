@@ -132,7 +132,7 @@ class MercadoPagoService
 
             $price = $billingCycle === 'annual' ? $plan->price_annual : $plan->price;
             $frequency = $billingCycle === 'annual' ? 12 : 1;
-            $reason = "Cartify Premium - {$plan->name} (" . ($billingCycle === 'annual' ? 'Anual' : 'Mensual') . ")";
+            $reason = "Sushi Burger Experience Premium - {$plan->name} (" . ($billingCycle === 'annual' ? 'Anual' : 'Mensual') . ")";
 
             $preapprovalPlanData = [
                 'reason' => $reason,
@@ -234,7 +234,7 @@ class MercadoPagoService
             $backUrl = $baseUrl . '/subscriptions/success';
 
             $frequency = $billingCycle === 'annual' ? 12 : 1;
-            $reason = "Cartify Premium - {$plan->name} ({$billingCycle}) - Coupon {$coupon->code}";
+            $reason = "Sushi Burger Experience Premium - {$plan->name} ({$billingCycle}) - Coupon {$coupon->code}";
 
             $preapprovalPlanData = [
                 'reason' => $reason,
@@ -344,7 +344,7 @@ class MercadoPagoService
             // Crear la suscripción (preapproval) con el plan y el token de tarjeta
             $preapprovalData = [
                 'preapproval_plan_id' => $mpPlan['id'],
-                'reason' => "Cartify Premium - {$plan->name}",
+                'reason' => "Sushi Burger Experience Premium - {$plan->name}",
                 'external_reference' => "subscription_{$company->id}_{$plan->id}",
                 'payer_email' => $payerEmail,
                 'card_token_id' => $cardTokenId,
@@ -426,7 +426,7 @@ class MercadoPagoService
 
             // Construir datos del preapproval
             $preapprovalData = [
-                'reason' => "Cartify Premium - {$plan->name}",
+                'reason' => "Sushi Burger Experience Premium - {$plan->name}",
                 'auto_recurring' => [
                     'frequency' => 1,
                     'frequency_type' => 'months',

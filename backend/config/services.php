@@ -45,7 +45,7 @@ return [
     'mercadopago' => [
         'access_token' => env('MP_ACCESS_TOKEN'),
         'public_key' => env('MP_PUBLIC_KEY'),
-        'app_id' => env('MP_APP_ID', '1029790359644016'), // Cartify App ID
+        'app_id' => env('MP_APP_ID', '1029790359644016'), // Sushi Burger Experience App ID
         'webhook_secret' => env('MP_WEBHOOK_SECRET'),
         'environment' => env('MP_ENVIRONMENT', 'sandbox'), // sandbox or production
     ],

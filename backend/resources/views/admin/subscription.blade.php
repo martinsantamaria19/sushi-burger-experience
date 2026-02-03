@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Mejorar Plan - Cartify')
+@section('title', 'Mejorar Plan - Sushi Burger Experience')
 @section('page_title', 'Mejorar Plan')
 
 @section('content')
@@ -113,7 +113,7 @@
     <div class="col-12">
         <div class="d-flex flex-column flex-md-row align-items-center justify-content-between mb-4 gap-3">
             <h3 class="h5 fw-bold mb-0">Planes Disponibles</h3>
-            
+
             <div class="d-flex align-items-center gap-3">
                 <!-- Toggle Mensual/Anual -->
                 <div class="bg-white p-1 rounded-pill border d-inline-flex position-relative" style="min-width: 240px;">
@@ -143,7 +143,7 @@
 
     @forelse($plans as $plan)
     <div class="col-12 col-md-6">
-        <div class="p-4 p-md-5 rounded-4 h-100 position-relative cartify-plan-card {{ $plan->slug === 'premium' ? 'glass-card border-primary' : 'glass-card border' }}" 
+        <div class="p-4 p-md-5 rounded-4 h-100 position-relative sbe-plan-card cartify-plan-card {{ $plan->slug === 'premium' ? 'glass-card border-primary' : 'glass-card border' }}"
              style="border-color: {{ $plan->slug === 'premium' ? 'var(--color-primary)' : 'var(--color-border)' }} !important; border-width: 2px !important;">
             @if($plan->slug === 'premium')
             <div class="position-absolute top-0 start-50 translate-middle mt-n3">
@@ -271,7 +271,7 @@
     <div class="col-12 mt-4">
         <div class="p-4 p-md-5 rounded-4 glass-card border" style="border-color: var(--color-border) !important;">
             <h3 class="h5 fw-bold mb-4">Información de Suscripción</h3>
-            
+
             <div class="row g-4">
                 <div class="col-md-6">
                     <div>
@@ -295,7 +295,7 @@
                     <div>
                         <label class="small text-muted mb-1">Período Actual</label>
                         <p class="mb-0">
-                            {{ $currentSubscription->current_period_start->format('d/m/Y') }} - 
+                            {{ $currentSubscription->current_period_start->format('d/m/Y') }} -
                             {{ $currentSubscription->current_period_end->format('d/m/Y') }}
                         </p>
                     </div>
@@ -330,14 +330,14 @@
         const btnMonthly = document.getElementById('btnMonthly');
         const btnAnnual = document.getElementById('btnAnnual');
         const bg = document.getElementById('billingToggleBg');
-        
+
         if (cycle === 'monthly') {
             btnMonthly.classList.remove('text-muted');
             btnMonthly.classList.add('text-primary');
             btnAnnual.classList.remove('text-primary');
             btnAnnual.classList.add('text-muted');
             bg.style.left = '4px';
-            
+
             document.querySelectorAll('.price-monthly').forEach(el => el.classList.remove('d-none'));
             document.querySelectorAll('.price-annual').forEach(el => el.classList.add('d-none'));
         } else {
@@ -346,7 +346,7 @@
             btnAnnual.classList.remove('text-muted');
             btnAnnual.classList.add('text-primary');
             bg.style.left = '50%';
-            
+
             document.querySelectorAll('.price-monthly').forEach(el => el.classList.add('d-none'));
             document.querySelectorAll('.price-annual').forEach(el => el.classList.remove('d-none'));
         }
@@ -357,16 +357,16 @@
         const btn = event.target.closest('button');
         const originalText = btn.innerHTML;
         const couponCode = document.getElementById('couponCode').value.trim();
-        
+
         btn.disabled = true;
         btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Procesando...';
 
         try {
-            const body = { 
+            const body = {
                 plan_id: planId,
                 billing_cycle: currentBillingCycle
             };
-            
+
             if (couponCode) {
                 body.coupon_code = couponCode;
             }
@@ -391,7 +391,7 @@
                 // Determinar qué URL usar (sandbox o producción)
                 const isProduction = {{ config('services.mercadopago.environment') === 'production' ? 'true' : 'false' }};
                 const checkoutUrl = isProduction ? data.init_point : (data.sandbox_init_point || data.init_point);
-                
+
                 window.location.href = checkoutUrl;
             } else {
                 throw new Error('No se recibió la URL de checkout');
@@ -400,7 +400,7 @@
             console.error('Error:', error);
             btn.disabled = false;
             btn.innerHTML = originalText;
-            
+
             window.CartifySwal.fire({
                 icon: 'error',
                 title: 'Error',
@@ -412,7 +412,7 @@
     // Función para cambiar a plan FREE
     async function switchToFreePlan() {
         const freePlanId = {{ $freePlan ? $freePlan->id : 'null' }};
-        
+
         if (!freePlanId) {
             window.CartifySwal.fire({
                 icon: 'error',
@@ -477,10 +477,10 @@
             title: '¿Cancelar Suscripción?',
             html: `
                 <p>Tu suscripción se cancelará pero mantendrás acceso hasta:</p>
-                <p class="fw-bold">${new Date('{{ $currentSubscription->current_period_end->toIso8601String() }}').toLocaleDateString('es-ES', { 
-                    day: '2-digit', 
-                    month: '2-digit', 
-                    year: 'numeric' 
+                <p class="fw-bold">${new Date('{{ $currentSubscription->current_period_end->toIso8601String() }}').toLocaleDateString('es-ES', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
                 })}</p>
                 <p class="small text-muted">Después de esa fecha, se cambiará automáticamente al plan Free.</p>
             `,
@@ -525,7 +525,7 @@
             console.error('Error:', error);
             btn.disabled = false;
             btn.innerHTML = originalText;
-            
+
             window.CartifySwal.fire({
                 icon: 'error',
                 title: 'Error',

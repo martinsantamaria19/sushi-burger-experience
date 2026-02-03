@@ -120,6 +120,12 @@ h6 {
     animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* Plan Card - Compatibilidad */
+.sbe-plan-card,
+.cartify-plan-card {
+    /* Hereda estilos de glass-card */
+}
+
 .auth-card {
     max-width: 750px;
     margin: 0 auto;
@@ -185,6 +191,7 @@ h6 {
     color: var(--color-primary);
 }
 
+.btn-sbe-primary,
 .btn-cartify-primary {
     background: var(--gradient-brand);
     color: white;
@@ -195,12 +202,14 @@ h6 {
     box-shadow: 0 0 20px rgba(124, 58, 237, 0.3);
 }
 
+.btn-sbe-primary:hover,
 .btn-cartify-primary:hover {
     color: white;
     transform: translateY(-2px);
     box-shadow: 0 0 30px rgba(124, 58, 237, 0.5);
 }
 
+.btn-sbe-secondary,
 .btn-cartify-secondary {
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -210,6 +219,7 @@ h6 {
     transition: all 0.2s ease;
 }
 
+.btn-sbe-secondary:hover,
 .btn-cartify-secondary:hover {
     color: white;
     background: rgba(255, 255, 255, 0.1);
@@ -224,6 +234,7 @@ h6 {
     margin-bottom: 0.5rem;
 }
 
+.form-control-sbe,
 .form-control-cartify {
     background: rgba(0, 0, 0, 0.2);
     border: 1px solid var(--color-border);
@@ -235,6 +246,7 @@ h6 {
     transition: all 0.2s ease;
 }
 
+.form-control-sbe:focus,
 .form-control-cartify:focus {
     outline: none;
     border-color: var(--color-primary);
@@ -244,6 +256,8 @@ h6 {
 }
 
 /* Select styles */
+.form-control-sbe select,
+select.form-control-sbe,
 .form-control-cartify select,
 select.form-control-cartify {
     background: rgba(0, 0, 0, 0.2) !important;
@@ -259,6 +273,8 @@ select.form-control-cartify {
     -moz-appearance: none !important;
 }
 
+.form-control-sbe select:focus,
+select.form-control-sbe:focus,
 .form-control-cartify select:focus,
 select.form-control-cartify:focus {
     background: rgba(124, 58, 237, 0.05) !important;
@@ -268,6 +284,8 @@ select.form-control-cartify:focus {
     outline: none !important;
 }
 
+.form-control-sbe select option,
+select.form-control-sbe option,
 .form-control-cartify select option,
 select.form-control-cartify option {
     background: var(--color-surface) !important;
@@ -275,6 +293,8 @@ select.form-control-cartify option {
     padding: 0.5rem !important;
 }
 
+.form-control-sbe select option:checked,
+select.form-control-sbe option:checked,
 .form-control-cartify select option:checked,
 select.form-control-cartify option:checked {
     background: var(--color-primary) !important;
@@ -358,6 +378,7 @@ select.form-control-cartify option:checked {
     margin: 0 auto;
 }
 
+.nav-item-sbe,
 .nav-item-cartify {
     display: flex;
     align-items: center;
@@ -373,16 +394,19 @@ select.form-control-cartify option:checked {
     white-space: nowrap;
 }
 
+.sidebar.collapsed .nav-item-sbe,
 .sidebar.collapsed .nav-item-cartify {
     padding: 0.875rem;
     justify-content: center;
 }
 
+.nav-item-sbe span,
 .nav-item-cartify span {
     transition: opacity 0.3s ease, width 0.3s ease;
     overflow: hidden;
 }
 
+.sidebar.collapsed .nav-item-sbe span,
 .sidebar.collapsed .nav-item-cartify span {
     opacity: 0;
     width: 0;
@@ -390,27 +414,32 @@ select.form-control-cartify option:checked {
     overflow: hidden;
 }
 
+.nav-item-sbe i,
 .nav-item-cartify i {
     width: 20px;
     height: 20px;
     flex-shrink: 0;
 }
 
+.sidebar.collapsed .nav-item-sbe i,
 .sidebar.collapsed .nav-item-cartify i {
     margin: 0;
 }
 
+.nav-item-sbe:hover,
 .nav-item-cartify:hover {
     color: white;
     background: rgba(255, 255, 255, 0.03);
 }
 
+.nav-item-sbe.active,
 .nav-item-cartify.active {
     color: white;
     background: rgba(124, 58, 237, 0.1);
     border: 1px solid rgba(124, 58, 237, 0.1);
 }
 
+.nav-item-sbe.active i,
 .nav-item-cartify.active i {
     color: var(--color-primary-light);
 }
@@ -445,22 +474,22 @@ select.form-control-cartify option:checked {
         z-index: 1000;
         box-shadow: 4px 0 20px rgba(0, 0, 0, 0.5);
     }
-    
+
     .sidebar.mobile-open {
         transform: translateX(0);
     }
-    
+
     /* Padding adicional en el contenedor del footer del sidebar para evitar que la barra del navegador tape contenido */
     .sidebar > div.border-top {
         padding-bottom: max(80px, env(safe-area-inset-bottom, 0px) + 60px) !important;
     }
-    
+
     /* Sidebar header en mobile: siempre visible cuando sidebar está abierto */
     .sidebar-header {
         padding: 0 1.5rem !important;
         justify-content: space-between !important;
     }
-    
+
     /* Logo siempre visible en mobile cuando sidebar está abierto - Mayor especificidad */
     .sidebar.mobile-open .sidebar-header .logo {
         opacity: 1 !important;
@@ -471,11 +500,11 @@ select.form-control-cartify option:checked {
         transition: opacity 0.2s ease;
         display: block !important;
     }
-    
+
     .sidebar.mobile-open .sidebar-header .logo:hover {
         opacity: 0.8;
     }
-    
+
     /* Overlay oscuro cuando el sidebar está abierto */
     .sidebar-overlay {
         display: none;
@@ -489,22 +518,22 @@ select.form-control-cartify option:checked {
         opacity: 0;
         transition: opacity 0.3s ease;
     }
-    
+
     .sidebar-overlay.active {
         display: block;
         opacity: 1;
     }
-    
+
     /* Ocultar botón toggle del sidebar en mobile */
     .sidebar-toggle-btn {
         display: none !important;
     }
-    
+
     /* Ajustar contenido principal en mobile */
     body {
         padding-left: 0 !important;
     }
-    
+
     .main-wrapper {
         margin-left: 0 !important;
     }
@@ -536,6 +565,7 @@ select.form-control-cartify option:checked {
 }
 
 /* Navbar */
+.sbe-navbar,
 .cartify-navbar {
     height: var(--navbar-height);
     background: rgba(5, 5, 5, 0.8);
@@ -547,27 +577,28 @@ select.form-control-cartify option:checked {
 
 /* Mobile Responsive Styles */
 @media (max-width: 991.98px) {
+    .sbe-navbar,
     .cartify-navbar {
         padding: 0 1rem;
     }
-    
+
     .main-wrapper main {
         padding: 1rem;
     }
-    
+
     .glass-card {
         padding: 1.5rem;
     }
-    
+
     .mobile-menu-toggle {
         display: flex !important;
     }
-    
+
     .mobile-menu-toggle:hover {
         color: white;
         background: rgba(255, 255, 255, 0.05);
     }
-    
+
     /* Page Header Styles - Shared across all views */
     .restaurants-header {
         flex-direction: column;
@@ -619,6 +650,7 @@ select.form-control-cartify option:checked {
 }
 
 /* SweetAlert2 Theme Overrides */
+.sbe-swal-popup,
 .cartify-swal-popup {
     border-radius: 24px !important;
     border: 1px solid var(--color-border) !important;
@@ -626,6 +658,7 @@ select.form-control-cartify option:checked {
     backdrop-filter: blur(16px) !important;
 }
 
+.sbe-swal-title,
 .cartify-swal-title {
     font-family: var(--font-heading) !important;
     font-weight: 700 !important;
@@ -671,7 +704,7 @@ div:where(.swal2-container) .swal2-footer {
         gap: 1rem;
         padding: 1rem !important;
     }
-    
+
     .subscription-limit-alert .btn {
         width: 100%;
     }

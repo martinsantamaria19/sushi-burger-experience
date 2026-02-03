@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Mis Restaurantes - Cartify')
+@section('title', 'Mis Restaurantes - Sushi Burger Experience')
 @section('page_title', 'Mis Restaurantes')
 
 @section('content')
@@ -101,7 +101,7 @@
                 <div class="mb-3">
                     <label class="form-label">URL Friendly (Slug)</label>
                     <div class="input-group">
-                        <span class="input-group-text bg-transparent border-end-0" style="border-color: var(--color-border); color: var(--color-text-muted);">cartify.uy/</span>
+                        <span class="input-group-text bg-transparent border-end-0" style="border-color: var(--color-border); color: var(--color-text-muted);">sushiburger.uy/</span>
                         <input type="text" name="slug" id="resSlug" class="form-control-cartify border-start-0 w-100" placeholder="pizzeria-dante" required>
                     </div>
                     <div id="slugError" class="text-danger small mt-2" style="display: none;"></div>

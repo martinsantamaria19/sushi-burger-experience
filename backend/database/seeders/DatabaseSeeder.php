@@ -22,10 +22,15 @@ class DatabaseSeeder extends Seeder
             SubscriptionPlanSeeder::class,
         ]);
 
+        // 0.5. Seed superadmin user
+        $this->call([
+            SuperAdminSeeder::class,
+        ]);
+
         // 1. Create a sample user if none exists
         $user = User::first() ?? User::factory()->create([
             'name' => 'Demo User',
-            'email' => 'demo@cartify.com',
+            'email' => 'demo@sushiburger.com',
             'password' => bcrypt('password'),
         ]);
 

@@ -12,6 +12,11 @@ use App\Http\Controllers\QrRedirectController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\MercadoPagoWebhookController;
 use App\Http\Controllers\ResourceManagementController;
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\AdminOrderController;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\MercadoPagoAccountController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -53,6 +58,22 @@ Route::middleware('auth')->group(function () {
         Route::get('/subscription', [SubscriptionController::class, 'index'])->name('admin.subscription');
         Route::get('/resource-management', [ResourceManagementController::class, 'index'])->name('admin.resource-management');
         Route::post('/resource-management/update', [ResourceManagementController::class, 'updateResources'])->name('admin.resource-management.update');
+
+        // Orders routes (admin)
+        Route::prefix('orders')->name('admin.orders.')->group(function () {
+            Route::get('/', [AdminOrderController::class, 'index'])->name('index');
+            Route::get('/{order}', [AdminOrderController::class, 'show'])->name('show');
+            Route::put('/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('update-status');
+            Route::post('/{order}/cancel', [AdminOrderController::class, 'cancel'])->name('cancel');
+        });
+
+        // MercadoPago configuration routes (admin)
+        Route::prefix('mercadopago')->name('admin.mercadopago.')->group(function () {
+            Route::get('/', [MercadoPagoAccountController::class, 'index'])->name('index');
+            Route::post('/', [MercadoPagoAccountController::class, 'store'])->name('store');
+            Route::delete('/', [MercadoPagoAccountController::class, 'destroy'])->name('destroy');
+            Route::post('/test', [MercadoPagoAccountController::class, 'test'])->name('test');
+        });
     });
 
     // API-like routes for the dashboard
@@ -88,7 +109,42 @@ Route::post('/api/webhooks/mercadopago', [MercadoPagoWebhookController::class, '
     ->name('webhooks.mercadopago')
     ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
 
-// Case-insensitive public menu route
+Route::post('/api/webhooks/mercadopago/orders', [MercadoPagoWebhookController::class, 'handleOrderPayment'])
+    ->name('webhooks.mercadopago.orders')
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
+
+// Cart routes (públicas, sin autenticación requerida)
+Route::prefix('cart')->name('cart.')->group(function () {
+    Route::get('/', [CartController::class, 'index'])->name('index');
+    Route::post('/add', [CartController::class, 'add'])->name('add');
+    Route::put('/{cartItem}', [CartController::class, 'update'])->name('update');
+    Route::delete('/{cartItem}', [CartController::class, 'remove'])->name('remove');
+    Route::delete('/', [CartController::class, 'clear'])->name('clear');
+    Route::get('/total', [CartController::class, 'getTotal'])->name('total');
+});
+
+// Order routes (públicas)
+Route::prefix('orders')->name('orders.')->group(function () {
+    Route::get('/checkout', [OrderController::class, 'checkout'])->name('checkout');
+    Route::post('/', [OrderController::class, 'store'])->name('store');
+    Route::get('/{order}/payment/{token}', [OrderController::class, 'payment'])->name('payment');
+    Route::get('/{order}/bank-transfer/{token}', [OrderController::class, 'bankTransfer'])->name('bank-transfer');
+    Route::get('/success/{order}/{token}', [OrderController::class, 'success'])->name('success');
+    Route::get('/failure', [OrderController::class, 'failure'])->name('failure');
+    Route::get('/track', [OrderController::class, 'track'])->name('track');
+    Route::get('/{order}/track/{token}', [OrderController::class, 'show'])->name('show');
+});
+
+// Payment routes (públicas)
+Route::prefix('payments')->name('payments.')->group(function () {
+    Route::post('/{order}/preference', [PaymentController::class, 'createPreference'])->name('create-preference');
+    Route::post('/{order}/bank-transfer', [PaymentController::class, 'processBankTransfer'])->name('bank-transfer');
+    Route::post('/{payment}/proof', [PaymentController::class, 'uploadTransferProof'])->name('upload-proof');
+    Route::get('/{payment}/verify', [PaymentController::class, 'verifyPayment'])->name('verify');
+    Route::get('/bank-accounts', [PaymentController::class, 'getBankAccounts'])->name('bank-accounts');
+});
+
+// Case-insensitive public menu route (debe ir al final para no interferir con otras rutas)
 Route::get('/{slug}', [PublicMenuController::class, 'show'])->name('public.menu');
 
 // QR Scan Redirect & Tracking

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\MercadoPagoService;
+use App\Services\MercadoPagoOrderService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
@@ -11,10 +12,12 @@ use Exception;
 class MercadoPagoWebhookController extends Controller
 {
     protected MercadoPagoService $mercadopagoService;
+    protected MercadoPagoOrderService $mpOrderService;
 
-    public function __construct(MercadoPagoService $mercadopagoService)
+    public function __construct(MercadoPagoService $mercadopagoService, MercadoPagoOrderService $mpOrderService)
     {
         $this->mercadopagoService = $mercadopagoService;
+        $this->mpOrderService = $mpOrderService;
     }
 
     /**
@@ -66,7 +69,7 @@ class MercadoPagoWebhookController extends Controller
                 'type' => $request->input('type'),
                 'action' => $request->input('action'),
             ]);
-            
+
             return response('OK', 200);
         } catch (Exception $e) {
             Log::error('Error processing MercadoPago webhook', [
@@ -97,6 +100,65 @@ class MercadoPagoWebhookController extends Controller
     {
         // Guardar en cache por 24 horas
         cache()->put("webhook_processed_{$xRequestId}", true, now()->addHours(24));
+    }
+
+    /**
+     * Manejar webhooks de pagos de órdenes (separado de suscripciones)
+     */
+    public function handleOrderPayment(Request $request): Response
+    {
+        try {
+            $xRequestId = $request->header('x-request-id');
+            $signature = $request->header('x-signature');
+
+            Log::info('MercadoPago Order Payment Webhook Received', [
+                'headers' => $request->headers->all(),
+                'body' => $request->all(),
+                'x_request_id' => $xRequestId,
+            ]);
+
+            // Verificar idempotencia
+            if ($xRequestId && $this->isAlreadyProcessed($xRequestId)) {
+                Log::info('Order payment webhook already processed', ['x_request_id' => $xRequestId]);
+                return response('OK', 200);
+            }
+
+            // Validar firma si está configurada
+            if ($signature && !$this->mercadopagoService->validateWebhookSignature(
+                $request->all(),
+                $signature
+            )) {
+                Log::warning('Invalid order payment webhook signature', [
+                    'signature' => $signature,
+                ]);
+                return response('Invalid signature', 401);
+            }
+
+            // Procesar notificación de pago de orden
+            $this->mpOrderService->processPaymentNotification($request->all());
+
+            // Marcar como procesado
+            if ($xRequestId) {
+                $this->markAsProcessed($xRequestId);
+            }
+
+            Log::info('Order payment webhook processed successfully', [
+                'x_request_id' => $xRequestId,
+                'type' => $request->input('type'),
+                'action' => $request->input('action'),
+            ]);
+
+            return response('OK', 200);
+        } catch (Exception $e) {
+            Log::error('Error processing order payment webhook', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'request' => $request->all(),
+            ]);
+
+            // Retornar 200 para evitar reenvíos
+            return response('OK', 200);
+        }
     }
 }
 
