@@ -5,7 +5,7 @@
 @section('content')
 <div class="glass-card auth-card">
     <div class="text-center mb-5 staggered-item staggered-1">
-        <a href="/" class="logo" style="font-size: 2.5rem;">Cartify<span class="dot">.</span></a>
+        <a href="/" class="logo" style="font-size: 2.5rem;">Sushi Burger Experience<span class="dot">.</span></a>
         <div class="mt-4">
             <h2 class="fw-bold h4 mb-2">Bienvenido de nuevo</h2>
             <p class="text-muted small">Ingresa tus credenciales para acceder al panel</p>
