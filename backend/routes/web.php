@@ -138,6 +138,7 @@ Route::prefix('orders')->name('orders.')->group(function () {
 // Payment routes (públicas)
 Route::prefix('payments')->name('payments.')->group(function () {
     Route::post('/{order}/preference', [PaymentController::class, 'createPreference'])->name('create-preference');
+    Route::post('/{order}/process-mercadopago', [PaymentController::class, 'processMercadoPagoPayment'])->name('process-mercadopago');
     Route::post('/{order}/bank-transfer', [PaymentController::class, 'processBankTransfer'])->name('bank-transfer');
     Route::post('/{payment}/proof', [PaymentController::class, 'uploadTransferProof'])->name('upload-proof');
     Route::get('/{payment}/verify', [PaymentController::class, 'verifyPayment'])->name('verify');

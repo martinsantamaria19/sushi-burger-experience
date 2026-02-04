@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Pagar Pedido - Sushi Burger Experience</title>
 
     <!-- MercadoPago SDK -->
@@ -143,8 +144,9 @@
     // Validate required data
     const publicKey = '{{ $publicKey }}';
     const preferenceId = '{{ $payment->mp_preference_id ?? '' }}';
-    // Ensure orderTotal is a number, not a string
     const orderTotal = {{ $order->total }};
+    const trackingToken = '{{ $order->tracking_token }}';
+    const processPaymentUrl = '{{ route("payments.process-mercadopago", ["order" => $order->id]) }}';
 
     // Debug logging
     console.log('Payment page initialization:', {
@@ -257,21 +259,55 @@
                                     timestamp: new Date().toISOString()
                                 });
 
-                                // Show loading state
                                 const submitButton = document.querySelector('[data-testid="submit-button"]');
                                 if (submitButton) {
                                     submitButton.disabled = true;
                                     submitButton.textContent = 'Procesando...';
                                 }
 
-                                // Cuando usas preferenceId, el Payment Brick procesa el pago automáticamente
-                                // y redirige según las back_urls configuradas en la preferencia
-                                // El callback onSubmit solo se usa para notificar que el usuario hizo clic
-                                // El brick maneja el procesamiento y la redirección automáticamente
+                                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-                                // No retornamos nada explícitamente - el brick maneja el flujo completo
-                                // Si retornamos una Promise, debe resolverse inmediatamente para no bloquear
-                                return Promise.resolve();
+                                try {
+                                    const response = await fetch(processPaymentUrl, {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'Accept': 'application/json',
+                                            'X-CSRF-TOKEN': csrfToken || '',
+                                            'X-Requested-With': 'XMLHttpRequest'
+                                        },
+                                        body: JSON.stringify({
+                                            token: trackingToken,
+                                            cardFormData: cardFormData
+                                        })
+                                    });
+
+                                    const data = await response.json().catch(() => ({}));
+
+                                    if (!response.ok) {
+                                        throw new Error(data.message || data.error || 'Error al procesar el pago');
+                                    }
+
+                                    if (!data.success) {
+                                        throw new Error(data.message || data.error || 'No se pudo completar el pago');
+                                    }
+
+                                    // Ticket/efectivo: redirigir a la URL del boleto para ver código de pago
+                                    if (data.redirect_url) {
+                                        window.location.href = data.redirect_url;
+                                        return;
+                                    }
+                                    // Aprobado o pendiente: ir a página de éxito
+                                    window.location.href = data.success_url || '{{ route("orders.success", ["order" => $order->id, "token" => $order->tracking_token]) }}';
+                                } catch (err) {
+                                    console.error('Payment submit error:', err);
+                                    if (submitButton) {
+                                        submitButton.disabled = false;
+                                        submitButton.textContent = 'Pagar';
+                                    }
+                                    showError(err.message || 'Error al procesar el pago. Intenta de nuevo.');
+                                    throw err;
+                                }
                             },
                             onError: (error) => {
                                 console.error('Payment Brick error:', error);

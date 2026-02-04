@@ -238,6 +238,91 @@ class MercadoPagoOrderService
     }
 
     /**
+     * Create payment in MercadoPago from Payment Brick form data (onSubmit).
+     * Used for ticket, cards, and other payment methods that require backend to call /v1/payments.
+     */
+    public function createPaymentFromBrick(Order $order, Payment $paymentRecord, array $cardFormData): array
+    {
+        $restaurant = $order->restaurant;
+        $company = $restaurant->company;
+        $mpAccount = $company->mercadopagoAccount;
+        if (!$mpAccount || !$mpAccount->isConnected()) {
+            throw new Exception('La empresa no tiene una cuenta de MercadoPago configurada');
+        }
+        $this->setAccount($mpAccount);
+
+        $paymentType = $cardFormData['paymentType'] ?? $cardFormData['selectedPaymentMethod'] ?? null;
+        $formData = $cardFormData['formData'] ?? $cardFormData;
+
+        $baseUrl = config('app.url', 'http://localhost:8080');
+        $webhookUrl = env('MERCADOPAGO_WEBHOOK_URL', $baseUrl . '/api/webhooks/mercadopago/orders');
+
+        $payload = [
+            'transaction_amount' => (float) $order->total,
+            'description' => 'Pedido #' . $order->order_number,
+            'external_reference' => $order->order_number,
+            'notification_url' => $webhookUrl,
+            'payment_method_id' => $formData['payment_method_id'] ?? $formData['paymentMethodId'] ?? null,
+            'payer' => [
+                'email' => $formData['payer']['email'] ?? $formData['email'] ?? $order->customer_email,
+                'identification' => [
+                    'type' => $formData['payer']['identification']['type'] ?? $formData['identificationType'] ?? 'CI',
+                    'number' => $formData['payer']['identification']['number'] ?? $formData['identificationNumber'] ?? '',
+                ],
+            ],
+        ];
+
+        if (!empty($formData['payer']['first_name']) || !empty($formData['payerFirstName'])) {
+            $payload['payer']['first_name'] = $formData['payer']['first_name'] ?? $formData['payerFirstName'] ?? '';
+        }
+        if (!empty($formData['payer']['last_name']) || !empty($formData['payerLastName'])) {
+            $payload['payer']['last_name'] = $formData['payer']['last_name'] ?? $formData['payerLastName'] ?? '';
+        }
+
+        // Card payments: token, installments, issuer_id
+        if (!empty($formData['token'])) {
+            $payload['token'] = $formData['token'];
+            $payload['installments'] = (int) ($formData['installments'] ?? $formData['installments'] ?? 1);
+            if (!empty($formData['issuer_id']) || !empty($formData['issuer'])) {
+                $payload['issuer_id'] = (string) ($formData['issuer_id'] ?? $formData['issuer'] ?? null);
+            }
+        }
+
+        // Ticket / offline: optional expiration (e.g. 3 days)
+        if ($paymentType === 'ticket' || ($payload['payment_method_id'] && in_array($payload['payment_method_id'], ['abitab', 'redpagos', 'rapipago', 'pagofacil', 'oxxo', 'efecty'], true))) {
+            $payload['date_of_expiration'] = now()->addDays(3)->format('Y-m-d\TH:i:s.000P');
+        }
+
+        // Idempotency key to avoid duplicate payments
+        $idempotencyKey = sprintf('order-%s-%s', $order->id, $paymentRecord->id);
+
+        Log::info('MercadoPago Create Payment from Brick', [
+            'order_id' => $order->id,
+            'payment_type' => $paymentType,
+            'payment_method_id' => $payload['payment_method_id'],
+        ]);
+
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer ' . $this->getAccessToken(),
+            'Content-Type' => 'application/json',
+            'X-Idempotency-Key' => $idempotencyKey,
+        ])->post("{$this->baseUrl}/v1/payments", $payload);
+
+        if (!$response->successful()) {
+            $errorBody = $response->body();
+            $errorData = json_decode($errorBody, true);
+            Log::error('MercadoPago Create Payment Error', [
+                'order_id' => $order->id,
+                'status' => $response->status(),
+                'response' => $errorBody,
+            ]);
+            throw new Exception($errorData['message'] ?? 'Error al crear el pago en MercadoPago: ' . $errorBody);
+        }
+
+        return $response->json();
+    }
+
+    /**
      * Get payment information from MercadoPago.
      */
     public function getPayment(string $paymentId): array

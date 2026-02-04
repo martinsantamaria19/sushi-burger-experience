@@ -57,6 +57,85 @@ class PaymentController extends Controller
     }
 
     /**
+     * Process MercadoPago payment from Payment Brick (onSubmit).
+     * Creates the payment in MercadoPago via API and returns redirect URL or success.
+     */
+    public function processMercadoPagoPayment(Request $request, Order $order)
+    {
+        $request->validate([
+            'token' => 'required|string',
+            'cardFormData' => 'required|array',
+        ]);
+
+        if ($request->token !== $order->tracking_token) {
+            return response()->json(['error' => 'Token inválido'], 403);
+        }
+
+        $paymentRecord = Payment::where('order_id', $order->id)
+            ->where('payment_method', 'mercadopago')
+            ->first();
+
+        if (!$paymentRecord) {
+            return response()->json([
+                'success' => false,
+                'error' => 'No se encontró la sesión de pago. Recarga la página e intenta de nuevo.',
+            ], 404);
+        }
+
+        try {
+            $mpPayment = $this->mpOrderService->createPaymentFromBrick(
+                $order,
+                $paymentRecord,
+                $request->cardFormData
+            );
+        } catch (\Exception $e) {
+            Log::error('Error processing MercadoPago payment from Brick', [
+                'order_id' => $order->id,
+                'error' => $e->getMessage(),
+            ]);
+            return response()->json([
+                'success' => false,
+                'error' => 'Error al procesar el pago',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+
+        $mpId = (string) ($mpPayment['id'] ?? '');
+        $status = $this->mpOrderService->mapPaymentStatus($mpPayment['status'] ?? 'pending');
+
+        $paymentRecord->update([
+            'mp_payment_id' => $mpId,
+            'status' => $status,
+            'processed_at' => now(),
+            'metadata' => array_merge($paymentRecord->metadata ?? [], [
+                'mp_payment' => $mpPayment,
+                'brick_submitted_at' => now()->toIso8601String(),
+            ]),
+        ]);
+
+        $orderPaymentStatus = match ($status) {
+            'approved' => 'paid',
+            'rejected', 'cancelled' => 'failed',
+            default => 'pending',
+        };
+        $order->update([
+            'payment_status' => $orderPaymentStatus,
+            'payment_id' => $mpId ?: $order->payment_id,
+        ]);
+
+        // Ticket / offline: external_resource_url to show barcode or redirect to pay
+        $externalResourceUrl = $mpPayment['transaction_details']['external_resource_url'] ?? null;
+
+        return response()->json([
+            'success' => true,
+            'payment_id' => $mpId,
+            'status' => $status,
+            'redirect_url' => $externalResourceUrl,
+            'success_url' => route('orders.success', ['order' => $order->id, 'token' => $order->tracking_token]),
+        ]);
+    }
+
+    /**
      * Process bank transfer payment.
      */
     public function processBankTransfer(Request $request, Order $order)
