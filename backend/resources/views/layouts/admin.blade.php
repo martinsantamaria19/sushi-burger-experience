@@ -270,6 +270,7 @@
                 <i data-lucide="settings"></i>
                 <span>Configuración</span>
             </a>
+
             @if($isFreePlan)
             <div class="nav-item-cartify disabled-premium" style="opacity: 0.5; cursor: not-allowed; position: relative;" title="Exclusivo Plan Full">
                 <i data-lucide="palette"></i>
@@ -289,6 +290,7 @@
             </a>
             @endif
 
+
             @if(Auth::user()->super_admin)
             <div class="mt-4 mb-2 px-3 text-muted text-uppercase small" style="font-size: 0.7rem; letter-spacing: 0.05em;">Super Admin</div>
             <a href="{{ route('super_admin.dashboard') }}" class="nav-item-cartify {{ request()->routeIs('super_admin.*') ? 'active' : '' }}">
@@ -299,10 +301,12 @@
         </nav>
 
         <div class="p-3 border-top" style="border-color: var(--color-border) !important;">
+            <!--
             <a href="{{ route('admin.subscription') }}" class="nav-item-cartify mb-2 {{ request()->routeIs('admin.subscription') ? 'active' : '' }}">
                 <i data-lucide="sparkles"></i>
                 <span>Mejorar Plan</span>
             </a>
+            -->
             <a href="https://wa.me/59899807750" target="_blank" class="nav-item-cartify mb-2">
                 <i data-lucide="message-circle"></i>
                 <span>Soporte</span>
