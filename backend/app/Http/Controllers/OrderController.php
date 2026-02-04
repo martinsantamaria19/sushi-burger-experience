@@ -6,6 +6,7 @@ use App\Models\CartItem;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\BankAccount;
+use App\Models\Payment;
 use App\Services\MercadoPagoOrderService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
