@@ -33,9 +33,9 @@ Route::get('/', function () {
 
 // Auth Routes
 Route::middleware('guest')->group(function () {
-    // Punto de entrada al backend: login de administradores
-    Route::get('/backend', [AuthController::class, 'showLogin'])->name('login');
-    Route::post('/backend', [AuthController::class, 'login']);
+    // Login de administradores
+    Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+    Route::post('/login', [AuthController::class, 'login']);
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
     Route::post('/register', [AuthController::class, 'register']);
 
@@ -48,6 +48,13 @@ Route::middleware('guest')->group(function () {
     // Email Verification Routes
     Route::get('/verify-email/{token}', [\App\Http\Controllers\EmailVerificationController::class, 'verify'])->name('email.verify');
     Route::post('/resend-verification', [\App\Http\Controllers\EmailVerificationController::class, 'resend'])->name('email.resend');
+});
+
+// Entrada principal al backend: /admin
+Route::get('/admin', function () {
+    return Auth::check()
+        ? redirect()->route('admin.dashboard')
+        : redirect()->route('login');
 });
 
 Route::middleware('auth')->group(function () {
