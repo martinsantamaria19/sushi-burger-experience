@@ -201,6 +201,16 @@
                 top: 0;
             }
         }
+
+        /* Desplegable de Google Places por encima del contenido */
+        .pac-container {
+            z-index: 1100 !important;
+        }
+        /* Ocultar desplegable después de elegir dirección para ver el tiempo estimado */
+        body.pac-dropdown-hidden .pac-container {
+            display: none !important;
+            visibility: hidden !important;
+        }
     </style>
 </head>
 <body>
@@ -213,7 +223,7 @@
         </a>
     </div>
 
-    <form action="{{ route('orders.store') }}" method="POST" id="checkoutForm">
+    <form action="{{ route('orders.store') }}" method="POST" id="checkoutForm" data-restaurant-id="{{ $restaurant->id }}" data-estimate-url="{{ route('api.delivery-estimate') }}">
         @csrf
 
         <div class="checkout-content">
@@ -240,17 +250,13 @@
 
                 <div class="form-group">
                     <label class="form-label">Dirección de entrega *</label>
-                    <textarea name="customer_address" class="form-control" rows="3" required>{{ old('customer_address') }}</textarea>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Coordenadas (opcional)</label>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                        <input type="number" step="any" name="delivery_address_lat" class="form-control"
-                               placeholder="Latitud" value="{{ old('delivery_address_lat') }}">
-                        <input type="number" step="any" name="delivery_address_lng" class="form-control"
-                               placeholder="Longitud" value="{{ old('delivery_address_lng') }}">
-                    </div>
+                    <input type="text" name="customer_address" id="customer_address" class="form-control"
+                           placeholder="Escribí y elegí una sugerencia para una mejor estimación"
+                           value="{{ old('customer_address') }}" required autocomplete="off">
+                    <input type="hidden" name="estimated_delivery_time" id="estimated_delivery_time" value="{{ old('estimated_delivery_time') }}">
+                    <input type="hidden" name="delivery_address_lat" id="delivery_address_lat" value="{{ old('delivery_address_lat') }}">
+                    <input type="hidden" name="delivery_address_lng" id="delivery_address_lng" value="{{ old('delivery_address_lng') }}">
+                    <p id="delivery-estimate-message" class="mt-2 mb-0" style="font-size: 0.9rem; color: var(--color-text-muted); min-height: 1.4em;"></p>
                 </div>
 
                 <div class="form-group">
@@ -338,6 +344,47 @@
 
 <!-- JS -->
 <script src="https://unpkg.com/lucide@latest"></script>
+@if(!empty($googleMapsApiKey))
+<script>
+    window.initCheckoutPlaces = function() {
+        const input = document.getElementById('customer_address');
+        if (!input) return;
+        const autocomplete = new google.maps.places.Autocomplete(input, {
+            types: ['address'],
+            fields: ['formatted_address', 'geometry']
+        });
+        function hidePacDropdown() {
+            document.body.classList.add('pac-dropdown-hidden');
+        }
+        function showPacDropdown() {
+            document.body.classList.remove('pac-dropdown-hidden');
+        }
+        autocomplete.addListener('place_changed', function() {
+            const place = autocomplete.getPlace();
+            if (!place.geometry || !place.geometry.location) return;
+            input.value = place.formatted_address || place.name || '';
+            const latEl = document.getElementById('delivery_address_lat');
+            const lngEl = document.getElementById('delivery_address_lng');
+            if (latEl) latEl.value = place.geometry.location.lat();
+            if (lngEl) lngEl.value = place.geometry.location.lng();
+            hidePacDropdown();
+            input.blur();
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+        });
+        input.addEventListener('focus', showPacDropdown);
+        input.addEventListener('blur', function() {
+            setTimeout(hidePacDropdown, 150);
+        });
+    };
+    (function() {
+        const script = document.createElement('script');
+        script.src = 'https://maps.googleapis.com/maps/api/js?key={{ $googleMapsApiKey }}&libraries=places&callback=initCheckoutPlaces';
+        script.async = true;
+        script.defer = true;
+        document.head.appendChild(script);
+    })();
+</script>
+@endif
 <script>
     lucide.createIcons();
 
@@ -356,8 +403,46 @@
         }
     });
 
+    // Estimación de tiempo de entrega al ingresar dirección
+    const form = document.getElementById('checkoutForm');
+    const addressEl = document.getElementById('customer_address');
+    const messageEl = document.getElementById('delivery-estimate-message');
+    const estimatedInput = document.getElementById('estimated_delivery_time');
+    const restaurantId = form.dataset.restaurantId;
+    const estimateUrl = form.dataset.estimateUrl;
+
+    let estimateTimeout = null;
+    addressEl.addEventListener('input', function() {
+        messageEl.textContent = '';
+        estimatedInput.value = '';
+        clearTimeout(estimateTimeout);
+        const address = (addressEl.value || '').trim();
+        if (address.length < 10) return;
+        estimateTimeout = setTimeout(function() {
+            messageEl.textContent = 'Calculando tiempo de entrega...';
+            fetch(estimateUrl + '?restaurant_id=' + encodeURIComponent(restaurantId) + '&destination=' + encodeURIComponent(address))
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.ok && data.total_minutes) {
+                        messageEl.textContent = data.message || ('Tiempo estimado: ~' + data.total_minutes + ' min');
+                        messageEl.style.color = 'var(--color-primary)';
+                        estimatedInput.value = data.total_minutes;
+                    } else {
+                        messageEl.textContent = data.message || 'No se pudo calcular. Verificá la dirección.';
+                        messageEl.style.color = 'var(--color-text-muted)';
+                        estimatedInput.value = '';
+                    }
+                })
+                .catch(function() {
+                    messageEl.textContent = 'No se pudo calcular el tiempo.';
+                    messageEl.style.color = 'var(--color-text-muted)';
+                    estimatedInput.value = '';
+                });
+        }, 600);
+    });
+
     // Form submission
-    document.getElementById('checkoutForm').addEventListener('submit', function(e) {
+    form.addEventListener('submit', function(e) {
         const submitBtn = document.getElementById('submitBtn');
         submitBtn.disabled = true;
         submitBtn.textContent = 'Procesando...';

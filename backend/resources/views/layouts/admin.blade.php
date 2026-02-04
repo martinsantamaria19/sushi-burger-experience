@@ -236,10 +236,28 @@
                 <i data-lucide="utensils-crossed"></i>
                 <span>Menú</span>
             </a>
+            @php
+                $user = Auth::user();
+                $company = $user->company;
+                $hasEcommerce = $company && $company->hasEcommerce();
+                $isFreePlan = $company && $company->isOnFreePlan();
+                $hasRestaurants = $company && $company->restaurants()->count() > 0;
+            @endphp
+
+            @if($hasEcommerce)
             <a href="{{ route('admin.orders.index') }}" class="nav-item-cartify {{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
                 <i data-lucide="shopping-cart"></i>
                 <span>Pedidos</span>
             </a>
+            <a href="{{ route('admin.mercadopago.index') }}" class="nav-item-cartify {{ request()->routeIs('admin.mercadopago.*') ? 'active' : '' }}">
+                <i data-lucide="credit-card"></i>
+                <span>MercadoPago</span>
+            </a>
+            <a href="{{ route('admin.bank-accounts') }}" class="nav-item-cartify {{ request()->routeIs('admin.bank-accounts') ? 'active' : '' }}">
+                <i data-lucide="landmark"></i>
+                <span>Cuentas Bancarias</span>
+            </a>
+            @endif
             <a href="{{ route('admin.qrs') }}" class="nav-item-cartify {{ request()->routeIs('admin.qrs') ? 'active' : '' }}">
                 <i data-lucide="qr-code"></i>
                 <span>Códigos QR</span>
@@ -252,16 +270,6 @@
                 <i data-lucide="settings"></i>
                 <span>Configuración</span>
             </a>
-            <a href="{{ route('admin.mercadopago.index') }}" class="nav-item-cartify {{ request()->routeIs('admin.mercadopago.*') ? 'active' : '' }}">
-                <i data-lucide="credit-card"></i>
-                <span>MercadoPago</span>
-            </a>
-            @php
-                $user = Auth::user();
-                $company = $user->company;
-                $isFreePlan = $company && $company->isOnFreePlan();
-                $hasRestaurants = $company && $company->restaurants()->count() > 0;
-            @endphp
             @if($isFreePlan)
             <div class="nav-item-cartify disabled-premium" style="opacity: 0.5; cursor: not-allowed; position: relative;" title="Exclusivo Plan Full">
                 <i data-lucide="palette"></i>

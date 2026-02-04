@@ -50,4 +50,8 @@ return [
         'environment' => env('MP_ENVIRONMENT', 'sandbox'), // sandbox or production
     ],
 
+    'google_maps' => [
+        'api_key' => env('GOOGLE_MAPS_API_KEY'),
+    ],
+
 ];

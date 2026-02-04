@@ -43,6 +43,9 @@ build:
 migrate:
 	@docker exec -it $(PHP_CONTAINER) php artisan migrate
 
+rollback:
+	@docker exec -it $(PHP_CONTAINER) php artisan migrate:rollback
+
 fresh:
 	@docker exec -it $(PHP_CONTAINER) php artisan migrate:fresh
 

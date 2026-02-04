@@ -23,6 +23,11 @@ class MercadoPagoAccountController extends Controller
                 ->with('error', 'No tienes una empresa asociada');
         }
 
+        if (!$company->hasEcommerce()) {
+            return redirect()->route('admin.dashboard')
+                ->with('error', 'La funcionalidad de ecommerce no está habilitada para esta empresa');
+        }
+
         $mpAccount = $company->mercadopagoAccount;
 
         return view('admin.mercadopago', [

@@ -34,6 +34,10 @@ class OrderController extends Controller
 
         // Group by restaurant (should be only one restaurant)
         $restaurant = $cartItems->first()->restaurant;
+        $company = $restaurant->company ?? null;
+        if (!$company || !$company->hasEcommerce()) {
+            abort(404);
+        }
         $total = $cartItems->sum(function ($item) {
             return $item->subtotal;
         });
@@ -43,6 +47,7 @@ class OrderController extends Controller
             'restaurant' => $restaurant,
             'total' => $total,
             'user' => Auth::user(),
+            'googleMapsApiKey' => config('services.google_maps.api_key', ''),
         ]);
     }
 
@@ -61,6 +66,7 @@ class OrderController extends Controller
             'delivery_notes' => 'nullable|string|max:1000',
             'notes' => 'nullable|string|max:1000',
             'payment_method' => 'required|in:mercadopago,bank_transfer',
+            'estimated_delivery_time' => 'nullable|integer|min:1|max:300',
         ]);
 
         $context = $this->getCartContext();
@@ -81,6 +87,10 @@ class OrderController extends Controller
         }
 
         $restaurant = $cartItems->first()->restaurant;
+        $company = $restaurant->company ?? null;
+        if (!$company || !$company->hasEcommerce()) {
+            abort(404);
+        }
         $subtotal = $cartItems->sum(function ($item) {
             return $item->subtotal;
         });
@@ -112,6 +122,9 @@ class OrderController extends Controller
                 'payment_status' => 'pending',
                 'status' => 'pending',
                 'notes' => $request->notes,
+                'estimated_delivery_time' => $request->filled('estimated_delivery_time')
+                    ? (int) $request->estimated_delivery_time
+                    : null,
             ]);
 
             // Create order items from cart items

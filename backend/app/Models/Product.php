@@ -49,6 +49,14 @@ class Product extends Model
     }
 
     /**
+     * Get all order items for this product.
+     */
+    public function orderItems(): HasMany
+    {
+        return $this->hasMany(OrderItem::class);
+    }
+
+    /**
      * Check if product is available for purchase.
      */
     public function isAvailable(): bool

@@ -17,6 +17,8 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\AdminOrderController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\MercadoPagoAccountController;
+use App\Http\Controllers\BankAccountController;
+use App\Http\Controllers\DeliveryEstimateController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -51,6 +53,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/restaurants/switch', [DashboardController::class, 'switchRestaurant'])->name('admin.restaurants.switch');
         Route::get('/menu', [DashboardController::class, 'menu'])->name('admin.menu');
         Route::get('/qrs', [DashboardController::class, 'qrs'])->name('admin.qrs');
+        Route::get('/bank-accounts', [DashboardController::class, 'bankAccounts'])->name('admin.bank-accounts');
         Route::get('/users', [DashboardController::class, 'users'])->name('admin.users');
         Route::get('/analytics', [DashboardController::class, 'analytics'])->name('admin.analytics');
         Route::get('/settings', [DashboardController::class, 'settings'])->name('admin.settings');
@@ -62,6 +65,10 @@ Route::middleware('auth')->group(function () {
         // Orders routes (admin)
         Route::prefix('orders')->name('admin.orders.')->group(function () {
             Route::get('/', [AdminOrderController::class, 'index'])->name('index');
+            Route::get('/new/count', [AdminOrderController::class, 'getNewOrdersCount'])->name('new.count');
+            Route::get('/new/list', [AdminOrderController::class, 'getNewOrders'])->name('new.list');
+            Route::post('/{order}/viewed', [AdminOrderController::class, 'markAsViewed'])->name('mark-viewed');
+            Route::post('/{order}/quick-status', [AdminOrderController::class, 'quickStatusUpdate'])->name('quick-status');
             Route::get('/{order}', [AdminOrderController::class, 'show'])->name('show');
             Route::put('/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('update-status');
             Route::post('/{order}/cancel', [AdminOrderController::class, 'cancel'])->name('cancel');
@@ -77,15 +84,21 @@ Route::middleware('auth')->group(function () {
     });
 
     // API-like routes for the dashboard
-    Route::prefix('dashboard-api')->group(function () {
-        Route::get('/analytics', [DashboardController::class, 'getAnalytics'])->name('api.analytics');
-        Route::put('/company', [DashboardController::class, 'updateCompany'])->name('api.company.update');
+    Route::prefix('dashboard-api')->name('api.')->group(function () {
+        Route::get('/analytics', [DashboardController::class, 'getAnalytics'])->name('analytics');
+        Route::get('/sales', [DashboardController::class, 'getSalesAnalytics'])->name('sales');
+        Route::get('/products-analytics', [DashboardController::class, 'getProductsAnalytics'])->name('products.analytics');
+        Route::put('/company', [DashboardController::class, 'updateCompany'])->name('company.update');
         Route::apiResource('restaurants', RestaurantController::class);
         Route::apiResource('menus', MenuController::class);
         Route::apiResource('categories', CategoryController::class);
         Route::apiResource('products', ProductController::class);
         Route::apiResource('qrcodes', QrCodeController::class);
         Route::apiResource('users', \App\Http\Controllers\UserController::class);
+        Route::get('/bank-accounts', [BankAccountController::class, 'index'])->name('bank-accounts.index');
+        Route::post('/bank-accounts', [BankAccountController::class, 'store'])->name('bank-accounts.store');
+        Route::put('/bank-accounts/{bank_account}', [BankAccountController::class, 'update'])->name('bank-accounts.update');
+        Route::delete('/bank-accounts/{bank_account}', [BankAccountController::class, 'destroy'])->name('bank-accounts.destroy');
     });
 
     // Subscription routes
@@ -112,6 +125,10 @@ Route::post('/api/webhooks/mercadopago', [MercadoPagoWebhookController::class, '
 Route::post('/api/webhooks/mercadopago/orders', [MercadoPagoWebhookController::class, 'handleOrderPayment'])
     ->name('webhooks.mercadopago.orders')
     ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
+
+// Estimación de tiempo de entrega (público, para checkout)
+Route::get('/api/delivery-estimate', [DeliveryEstimateController::class, 'estimate'])
+    ->name('api.delivery-estimate');
 
 // Cart routes (públicas, sin autenticación requerida)
 Route::prefix('cart')->name('cart.')->group(function () {
@@ -140,7 +157,6 @@ Route::prefix('payments')->name('payments.')->group(function () {
     Route::post('/{order}/preference', [PaymentController::class, 'createPreference'])->name('create-preference');
     Route::post('/{order}/process-mercadopago', [PaymentController::class, 'processMercadoPagoPayment'])->name('process-mercadopago');
     Route::post('/{order}/bank-transfer', [PaymentController::class, 'processBankTransfer'])->name('bank-transfer');
-    Route::post('/{payment}/proof', [PaymentController::class, 'uploadTransferProof'])->name('upload-proof');
     Route::get('/{payment}/verify', [PaymentController::class, 'verifyPayment'])->name('verify');
     Route::get('/bank-accounts', [PaymentController::class, 'getBankAccounts'])->name('bank-accounts');
 });

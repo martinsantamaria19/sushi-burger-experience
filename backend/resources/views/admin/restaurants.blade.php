@@ -108,7 +108,15 @@
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Dirección</label>
-                    <input type="text" name="address" id="resAddress" class="form-control-cartify w-100" placeholder="Introduzca la dirección de su restaurante">
+                    <input type="text" name="address" id="resAddress" class="form-control-cartify w-100" placeholder="Buscar dirección (Google Maps)">
+                    <input type="hidden" name="latitude" id="resLat">
+                    <input type="hidden" name="longitude" id="resLng">
+                    <div class="form-text text-muted small">Elegí una sugerencia para guardar la ubicación exacta y mejorar el cálculo del tiempo de entrega.</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Tiempo de preparación (minutos)</label>
+                    <input type="number" name="preparation_time_minutes" id="resPreparationTimeMinutes" class="form-control-cartify w-100" placeholder="15" min="1" max="120" value="15">
+                    <div class="form-text text-muted small">Se suma al tiempo de ruta para calcular la entrega estimada al cliente.</div>
                 </div>
                 <div class="form-check form-switch mb-4">
                     <input class="form-check-input" type="checkbox" name="is_active" id="resActive" checked>
@@ -127,6 +135,11 @@
 
 @section('styles')
 <style>
+    /* Desplegable de Google Places por encima del modal Bootstrap */
+    .pac-container {
+        z-index: 1060 !important;
+    }
+
     .swal2-actions-gap {
         gap: 1rem !important;
         display: flex !important;
@@ -224,6 +237,43 @@
 @endsection
 
 @section('scripts')
+@if(!empty($googleMapsApiKey))
+<script>
+    window.initRestaurantPlaces = function() {
+        const input = document.getElementById('resAddress');
+        if (!input) return;
+        const autocomplete = new google.maps.places.Autocomplete(input, {
+            types: ['address'],
+            fields: ['formatted_address', 'geometry']
+        });
+        autocomplete.addListener('place_changed', function() {
+            const place = autocomplete.getPlace();
+            if (!place.geometry || !place.geometry.location) return;
+            window._restaurantPlaceFromAutocomplete = true;
+            input.value = place.formatted_address || place.name || '';
+            const resLat = document.getElementById('resLat');
+            const resLng = document.getElementById('resLng');
+            if (resLat) resLat.value = place.geometry.location.lat();
+            if (resLng) resLng.value = place.geometry.location.lng();
+            setTimeout(function() { window._restaurantPlaceFromAutocomplete = false; }, 0);
+        });
+        input.addEventListener('input', function() {
+            if (window._restaurantPlaceFromAutocomplete) return;
+            const resLat = document.getElementById('resLat');
+            const resLng = document.getElementById('resLng');
+            if (resLat) resLat.value = '';
+            if (resLng) resLng.value = '';
+        });
+    };
+    (function() {
+        const script = document.createElement('script');
+        script.src = 'https://maps.googleapis.com/maps/api/js?key={{ $googleMapsApiKey }}&libraries=places&callback=initRestaurantPlaces';
+        script.async = true;
+        script.defer = true;
+        document.head.appendChild(script);
+    })();
+</script>
+@endif
 <script>
     (function() {
         const apiBase = '/dashboard-api';
@@ -279,6 +329,12 @@
             if (submitBtn) submitBtn.innerText = 'Crear Restaurante';
             const resActive = document.getElementById('resActive');
             if (resActive) resActive.checked = true;
+            const resPreparationTimeMinutes = document.getElementById('resPreparationTimeMinutes');
+            if (resPreparationTimeMinutes) resPreparationTimeMinutes.value = '15';
+            const resLat = document.getElementById('resLat');
+            const resLng = document.getElementById('resLng');
+            if (resLat) resLat.value = '';
+            if (resLng) resLng.value = '';
             // Limpiar errores
             clearSlugError();
         }
@@ -292,6 +348,12 @@
             if (resSlug) resSlug.value = res.slug || '';
             const resAddress = document.getElementById('resAddress');
             if (resAddress) resAddress.value = res.address || '';
+            const resLat = document.getElementById('resLat');
+            const resLng = document.getElementById('resLng');
+            if (resLat) resLat.value = res.latitude ?? '';
+            if (resLng) resLng.value = res.longitude ?? '';
+            const resPreparationTimeMinutes = document.getElementById('resPreparationTimeMinutes');
+            if (resPreparationTimeMinutes) resPreparationTimeMinutes.value = res.preparation_time_minutes ?? 15;
             const resActive = document.getElementById('resActive');
             if (resActive) resActive.checked = res.is_active !== false;
 

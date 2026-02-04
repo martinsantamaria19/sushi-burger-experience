@@ -35,6 +35,7 @@ class Order extends Model
         'actual_delivery_time',
         'notes',
         'tracking_token',
+        'viewed_at',
     ];
 
     protected $casts = [
@@ -46,6 +47,7 @@ class Order extends Model
         'delivery_address_lng' => 'decimal:8',
         'estimated_delivery_time' => 'integer',
         'actual_delivery_time' => 'datetime',
+        'viewed_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
@@ -249,6 +251,41 @@ class Order extends Model
     }
 
     /**
+     * Scope to get unviewed orders.
+     */
+    public function scopeUnviewed($query)
+    {
+        return $query->whereNull('viewed_at');
+    }
+
+    /**
+     * Scope to get viewed orders.
+     */
+    public function scopeViewed($query)
+    {
+        return $query->whereNotNull('viewed_at');
+    }
+
+    /**
+     * Mark order as viewed.
+     */
+    public function markAsViewed(): bool
+    {
+        if ($this->viewed_at === null) {
+            return $this->update(['viewed_at' => now()]);
+        }
+        return true;
+    }
+
+    /**
+     * Check if order is viewed.
+     */
+    public function isViewed(): bool
+    {
+        return $this->viewed_at !== null;
+    }
+
+    /**
      * Scope to get orders by status.
      */
     public function scopeByStatus($query, string $status)
@@ -285,5 +322,32 @@ class Order extends Model
             'refunded' => 'Reembolsado',
             default => $this->payment_status,
         };
+    }
+
+    /**
+     * Fecha/hora estimada de entrega (created_at + estimated_delivery_time minutos).
+     */
+    public function getEstimatedDeliveryAtAttribute(): ?\Carbon\Carbon
+    {
+        if ($this->estimated_delivery_time === null || $this->estimated_delivery_time < 1) {
+            return null;
+        }
+        return $this->created_at->copy()->addMinutes($this->estimated_delivery_time);
+    }
+
+    /**
+     * Minutos restantes hasta la entrega estimada (0 si ya pasó o pedido entregado/cancelado).
+     */
+    public function getRemainingDeliveryMinutesAttribute(): ?int
+    {
+        if (in_array($this->status, ['delivered', 'cancelled'], true)) {
+            return null;
+        }
+        $at = $this->estimated_delivery_at;
+        if ($at === null) {
+            return null;
+        }
+        $remaining = (int) floor(max(0, $at->getTimestamp() - time()) / 60);
+        return $remaining;
     }
 }

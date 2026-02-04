@@ -16,8 +16,6 @@ class BankAccount extends Model
         'account_type',
         'account_number',
         'account_holder',
-        'cbu',
-        'alias',
         'currency',
         'is_active',
         'instructions',

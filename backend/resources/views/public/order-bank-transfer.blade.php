@@ -189,18 +189,6 @@
                     <span class="account-detail-label">Número de Cuenta</span>
                     <span class="account-detail-value">{{ $bankAccount->account_number }}</span>
                 </div>
-                @if($bankAccount->cbu)
-                <div class="account-detail">
-                    <span class="account-detail-label">CBU</span>
-                    <span class="account-detail-value">{{ $bankAccount->cbu }}</span>
-                </div>
-                @endif
-                @if($bankAccount->alias)
-                <div class="account-detail">
-                    <span class="account-detail-label">Alias</span>
-                    <span class="account-detail-value">{{ $bankAccount->alias }}</span>
-                </div>
-                @endif
                 @if($bankAccount->instructions)
                 <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--color-border);">
                     <p style="color: var(--color-text-muted); font-size: 0.9rem;">{{ $bankAccount->instructions }}</p>
@@ -210,38 +198,15 @@
         @endforeach
 
         <div class="transfer-form">
-            <h2 style="font-family: 'Outfit', sans-serif; margin-bottom: 20px;">Registrar Transferencia</h2>
+            <div class="alert alert-info" style="margin-bottom: 24px;">
+                <strong>Importante:</strong> Realizá la transferencia a una de las cuentas de arriba. Luego hacé clic en el botón para avisar al restaurante.
+            </div>
 
-            <form id="transferForm" enctype="multipart/form-data">
+            <form id="transferForm">
                 @csrf
                 <input type="hidden" name="token" value="{{ $order->tracking_token }}">
-
-                <div class="form-group">
-                    <label class="form-label">Número de Referencia de la Transferencia *</label>
-                    <input type="text" name="reference" class="form-control" required
-                           placeholder="Ingresa el número de referencia de tu transferencia">
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Comprobante de Transferencia (opcional)</label>
-                    <input type="file" name="proof" class="form-control" accept="image/*,application/pdf">
-                    <small style="color: var(--color-text-muted); font-size: 0.85rem;">
-                        Formatos aceptados: JPG, PNG, PDF (máx. 5MB)
-                    </small>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Notas (opcional)</label>
-                    <textarea name="notes" class="form-control" rows="3"
-                              placeholder="Información adicional sobre la transferencia"></textarea>
-                </div>
-
-                <div class="alert alert-info">
-                    <strong>Importante:</strong> Una vez realizada la transferencia, el restaurante verificará el pago y confirmará tu pedido.
-                </div>
-
                 <button type="submit" class="btn-submit" id="submitBtn">
-                    Registrar Transferencia
+                    Confirmar transferencia
                 </button>
             </form>
         </div>
@@ -258,12 +223,11 @@
 
         const submitBtn = document.getElementById('submitBtn');
         submitBtn.disabled = true;
-        submitBtn.textContent = 'Registrando...';
+        submitBtn.textContent = 'Enviando...';
 
         const formData = new FormData(this);
 
         try {
-            // Use relative URL to avoid mixed content issues
             const response = await fetch('/payments/{{ $order->id }}/bank-transfer', {
                 method: 'POST',
                 body: formData,
@@ -277,15 +241,15 @@
             if (data.success) {
                 window.location.href = '{{ route("orders.success", ["order" => $order->id, "token" => $order->tracking_token]) }}';
             } else {
-                alert('Error: ' + (data.message || 'No se pudo registrar la transferencia'));
+                alert(data.message || 'No se pudo confirmar. Intentá de nuevo.');
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'Registrar Transferencia';
+                submitBtn.textContent = 'Confirmar transferencia';
             }
         } catch (error) {
             console.error('Error:', error);
-            alert('Error al registrar la transferencia. Por favor, intenta nuevamente.');
+            alert('Error de conexión. Intentá de nuevo.');
             submitBtn.disabled = false;
-            submitBtn.textContent = 'Registrar Transferencia';
+            submitBtn.textContent = 'Confirmar transferencia';
         }
     });
 </script>

@@ -14,6 +14,14 @@
                     <span class="badge bg-{{ $order->status === 'delivered' ? 'success' : ($order->status === 'cancelled' ? 'danger' : 'warning') }} mb-2">
                         {{ $order->status_label }}
                     </span>
+                    @if(!in_array($order->status, ['delivered', 'cancelled']) && $order->remaining_delivery_minutes !== null)
+                        <span class="badge bg-info bg-opacity-25 text-info ms-2" id="order-remaining-time">
+                            <i data-lucide="clock" style="width: 14px; height: 14px; vertical-align: -2px;"></i>
+                            Tiempo restante: <span id="remaining-minutes">{{ $order->remaining_delivery_minutes }}</span> min
+                        </span>
+                    @elseif($order->estimated_delivery_at && $order->status === 'delivered')
+                        <span class="text-muted small ms-2">Entregado</span>
+                    @endif
                 </div>
                 <a href="{{ route('admin.orders.index') }}" class="btn btn-cartify-secondary btn-sm">
                     ← Volver
@@ -79,21 +87,47 @@
         <!-- Status History -->
         @if($order->statusHistory->count() > 0)
         <div class="glass-card p-4">
-            <h4 class="mb-3">Historial de Estados</h4>
-            <div class="timeline">
-                @foreach($order->statusHistory as $history)
-                    <div class="mb-3 pb-3 border-bottom border-secondary">
-                        <div class="d-flex justify-content-between">
-                            <div>
-                                <strong>{{ $history->new_status }}</strong>
-                                @if($history->changedBy)
-                                    <br><small class="text-muted">Por: {{ $history->changedBy->name }}</small>
-                                @endif
-                                @if($history->notes)
-                                    <br><small class="text-muted">{{ $history->notes }}</small>
-                                @endif
+            <h4 class="mb-4" style="font-family: var(--font-heading); font-weight: 700; display: flex; align-items: center; gap: 10px;">
+                <i data-lucide="history" style="width: 24px; height: 24px; color: var(--color-primary);"></i>
+                Historial de Estados
+            </h4>
+            <div class="status-history-list">
+                @foreach($order->statusHistory as $index => $history)
+                    <div class="status-history-item {{ $index === 0 ? 'is-latest' : '' }}">
+                        <div class="status-history-icon-wrapper">
+                            <div class="status-history-icon bg-{{ $history->status_color }}">
+                                <i data-lucide="{{ $history->status_icon }}"></i>
                             </div>
-                            <small class="text-muted">{{ $history->created_at ? $history->created_at->format('d/m/Y H:i') : 'N/A' }}</small>
+                            @if($index < $order->statusHistory->count() - 1)
+                                <div class="status-history-connector"></div>
+                            @endif
+                        </div>
+                        <div class="status-history-content">
+                            <div class="status-history-header">
+                                <div class="status-history-main">
+                                    <span class="badge bg-{{ $history->status_color }} status-badge">
+                                        {{ $history->status_label }}
+                                    </span>
+                                    <div class="status-history-meta">
+                                        @if($history->changedBy)
+                                            <span class="status-meta-item">
+                                                <i data-lucide="user"></i>
+                                                Por: {{ $history->changedBy->name }}
+                                            </span>
+                                        @endif
+                                        <span class="status-meta-item">
+                                            <i data-lucide="clock"></i>
+                                            {{ $history->created_at ? $history->created_at->format('d/m/Y H:i') : 'N/A' }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            @if($history->notes)
+                                <div class="status-history-notes">
+                                    <i data-lucide="message-square"></i>
+                                    {{ $history->notes }}
+                                </div>
+                            @endif
                         </div>
                     </div>
                 @endforeach
@@ -271,13 +305,150 @@
     .glass-card .mb-4 {
         width: 100%;
     }
+
+    /* Status History Styles - Diseño limpio y funcional */
+    .status-history-list {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .status-history-item {
+        display: flex;
+        gap: 16px;
+        align-items: flex-start;
+    }
+
+    .status-history-icon-wrapper {
+        position: relative;
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .status-history-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        position: relative;
+        z-index: 2;
+    }
+
+    .status-history-icon i {
+        width: 18px;
+        height: 18px;
+    }
+
+    .status-history-item.is-latest .status-history-icon {
+        animation: pulse-glow 2s infinite;
+    }
+
+    @keyframes pulse-glow {
+        0%, 100% {
+            box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.7);
+        }
+        50% {
+            box-shadow: 0 0 0 8px rgba(124, 58, 237, 0);
+        }
+    }
+
+    .status-history-connector {
+        width: 2px;
+        height: calc(100% + 20px);
+        background: linear-gradient(to bottom, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+        margin-top: 4px;
+    }
+
+    .status-history-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .status-history-header {
+        margin-bottom: 0;
+    }
+
+    .status-history-main {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .status-badge {
+        font-size: 0.875rem;
+        padding: 6px 12px;
+        font-weight: 600;
+        display: inline-block;
+        width: fit-content;
+    }
+
+    .status-history-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        align-items: center;
+        margin-top: 6px;
+    }
+
+    .status-meta-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.813rem;
+        color: var(--color-text-muted);
+    }
+
+    .status-meta-item i {
+        width: 14px;
+        height: 14px;
+    }
+
+    .status-history-notes {
+        margin-top: 10px;
+        padding: 10px 14px;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 8px;
+        border-left: 3px solid var(--color-primary);
+        font-size: 0.875rem;
+        color: var(--color-text-muted);
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        line-height: 1.5;
+    }
+
+    .status-history-notes i {
+        width: 16px;
+        height: 16px;
+        margin-top: 2px;
+        flex-shrink: 0;
+    }
+
+    /* Color variants for badges and icons */
+    .bg-warning { background-color: #ffc107 !important; color: #000 !important; }
+    .bg-info { background-color: #0dcaf0 !important; color: #000 !important; }
+    .bg-primary { background-color: #7c3aed !important; color: #fff !important; }
+    .bg-success { background-color: #10b981 !important; color: #fff !important; }
+    .bg-danger { background-color: #ef4444 !important; color: #fff !important; }
+    .bg-secondary { background-color: #6c757d !important; color: #fff !important; }
 </style>
 @endsection
 
 @section('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Initialize Lucide icons
         lucide.createIcons();
+
+        // Re-initialize icons after a short delay to ensure all dynamic content is rendered
+        setTimeout(() => {
+            lucide.createIcons();
+        }, 100);
 
         function copyTrackingLink(event) {
             const input = document.getElementById('trackingLink');

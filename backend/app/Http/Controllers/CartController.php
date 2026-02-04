@@ -38,6 +38,15 @@ class CartController extends Controller
             ->get()
             ->groupBy('restaurant_id');
 
+        // Si hay items en el carrito, validar que el restaurante tenga ecommerce habilitado
+        if ($cartItems->isNotEmpty()) {
+            $firstRestaurant = $cartItems->first()->first()->restaurant ?? null;
+            $company = $firstRestaurant?->company;
+            if (!$company || !$company->hasEcommerce()) {
+                abort(404);
+            }
+        }
+
         $total = $cartItems->flatten()->sum(function ($item) {
             return $item->subtotal;
         });
@@ -60,6 +69,16 @@ class CartController extends Controller
         ]);
 
         $product = Product::findOrFail($request->product_id);
+
+        // Verificar que el restaurante tenga ecommerce habilitado
+        $restaurant = $product->restaurant;
+        $company = $restaurant->company ?? null;
+        if (!$company || !$company->hasEcommerce()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Este restaurante no tiene ecommerce habilitado.',
+            ], 403);
+        }
 
         // Verify product is available
         if (!$product->isAvailable()) {

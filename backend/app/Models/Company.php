@@ -19,12 +19,14 @@ class Company extends Model
         'slug',
         'currency',
         'settings',
+        'has_ecommerce',
         'subscription_id',
         'plan_id',
     ];
 
     protected $casts = [
         'settings' => 'array',
+        'has_ecommerce' => 'boolean',
     ];
 
     /**
@@ -76,6 +78,14 @@ class Company extends Model
     public function mercadopagoAccount(): HasOne
     {
         return $this->hasOne(MercadoPagoAccount::class);
+    }
+
+    /**
+     * Check if this company has ecommerce features enabled.
+     */
+    public function hasEcommerce(): bool
+    {
+        return (bool) ($this->has_ecommerce ?? false);
     }
 }
 

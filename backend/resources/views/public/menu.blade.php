@@ -17,6 +17,7 @@
         // Prioridad: settings del restaurante > settings de la compañía > defaults
         $restaurantSettings = $restaurant->settings ?? [];
         $companySettings = isset($company) && $company ? ($company->settings ?? []) : [];
+        $hasEcommerce = isset($company) && $company ? $company->hasEcommerce() : false;
 
         $colorName = $restaurantSettings['color_name'] ?? $companySettings['brand_color'] ?? '#ffffff';
         $colorAddress = $restaurantSettings['color_address'] ?? $companySettings['text_muted_color'] ?? '#94a3b8';
@@ -505,9 +506,11 @@
                                 <p class="product-desc">{{ $product->description }}</p>
                                 <div class="product-footer">
                                     <span class="product-price">${{ number_format($product->price, 0, ',', '.') }}</span>
+                                    @if($hasEcommerce)
                                     <button class="btn-add-cart" data-product-id="{{ $product->id }}" data-product-name="{{ $product->name }}" data-product-price="{{ $product->price }}" title="Agregar al carrito">
                                         <i data-lucide="shopping-cart"></i>
                                     </button>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -519,11 +522,13 @@
 
 </main>
 
+@if($hasEcommerce)
 <!-- Cart Floating Button -->
 <a href="{{ route('cart.index') }}" class="cart-floating-btn" id="cartFloatingBtn" title="Ver carrito">
     <i data-lucide="shopping-cart"></i>
     <span class="cart-badge" id="cartBadge" style="display: none;">0</span>
 </a>
+@endif
 
 <!-- Social Floating -->
 <div class="floating-social">
@@ -624,14 +629,13 @@
 
     sections.forEach(section => observer.observe(section));
 
-    // Cart functionality
+    @if($hasEcommerce)
+    // Cart functionality (solo si ecommerce está habilitado)
     const cartButtons = document.querySelectorAll('.btn-add-cart');
     const cartBadge = document.getElementById('cartBadge');
     const cartFloatingBtn = document.getElementById('cartFloatingBtn');
 
-    // Load cart count on page load
     function updateCartBadge() {
-        // Use relative URL to avoid mixed content issues with ngrok/HTTPS
         fetch('/cart/total', {
             method: 'GET',
             headers: {
@@ -640,10 +644,10 @@
         })
             .then(response => response.json())
             .then(data => {
-                if (data.count > 0) {
+                if (data.count > 0 && cartBadge) {
                     cartBadge.textContent = data.count;
                     cartBadge.style.display = 'flex';
-                } else {
+                } else if (cartBadge) {
                     cartBadge.style.display = 'none';
                 }
             })
@@ -658,13 +662,11 @@
             const productName = this.dataset.productName;
             const productPrice = this.dataset.productPrice;
 
-            // Disable button temporarily
             this.disabled = true;
             const originalHTML = this.innerHTML;
             this.innerHTML = '<i data-lucide="loader-2" style="width: 20px; height: 20px;"></i>';
             lucide.createIcons();
 
-            // Use relative URL to avoid mixed content issues with ngrok/HTTPS
             fetch('/cart/add', {
                 method: 'POST',
                 headers: {
@@ -680,10 +682,8 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Update badge
                     updateCartBadge();
 
-                    // Show success message
                     MenuSwal.fire({
                         icon: 'success',
                         title: '¡Agregado!',
@@ -694,7 +694,6 @@
                         position: 'top-end'
                     });
 
-                    // Animate button
                     this.style.transform = 'scale(1.2)';
                     setTimeout(() => {
                         this.style.transform = 'scale(1)';
@@ -723,8 +722,8 @@
         });
     });
 
-    // Initialize cart badge
     updateCartBadge();
+    @endif
 </script>
 
 <!-- Footer para evitar que la barra del navegador móvil tape contenido -->

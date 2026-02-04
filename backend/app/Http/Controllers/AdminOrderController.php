@@ -87,7 +87,10 @@ class AdminOrderController extends Controller
             abort(403, 'No tienes acceso a este pedido');
         }
 
-        $order->load(['items.product', 'restaurant', 'statusHistory.changedBy', 'user']);
+        $order->load(['items.product', 'restaurant', 'statusHistory.changedBy', 'user', 'payments']);
+
+        // Mark order as viewed when opened
+        $order->markAsViewed();
 
         return view('admin.orders.show', [
             'order' => $order,
@@ -150,5 +153,111 @@ class AdminOrderController extends Controller
         }
 
         return back()->with('error', 'No se pudo cancelar el pedido');
+    }
+
+    /**
+     * Get new orders count (for notifications).
+     */
+    public function getNewOrdersCount(Request $request)
+    {
+        $user = Auth::user();
+        $company = $user->company;
+
+        if (!$company) {
+            return response()->json(['count' => 0]);
+        }
+
+        $count = Order::with(['restaurant'])
+            ->whereIn('restaurant_id', $company->restaurants->pluck('id'))
+            ->whereNull('viewed_at')
+            ->where('status', '!=', 'cancelled')
+            ->count();
+
+        return response()->json(['count' => $count]);
+    }
+
+    /**
+     * Get new orders (for notifications).
+     */
+    public function getNewOrders(Request $request)
+    {
+        $user = Auth::user();
+        $company = $user->company;
+
+        if (!$company) {
+            return response()->json(['orders' => []]);
+        }
+
+        $orders = Order::with(['restaurant'])
+            ->whereIn('restaurant_id', $company->restaurants->pluck('id'))
+            ->whereNull('viewed_at')
+            ->where('status', '!=', 'cancelled')
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get()
+            ->map(function ($order) {
+                return [
+                    'id' => $order->id,
+                    'order_number' => $order->order_number,
+                    'customer_name' => $order->customer_name,
+                    'total' => $order->total,
+                    'status' => $order->status,
+                    'status_label' => $order->status_label,
+                    'restaurant_name' => $order->restaurant->name,
+                    'created_at' => $order->created_at->format('H:i'),
+                    'created_at_full' => $order->created_at->toIso8601String(),
+                ];
+            });
+
+        return response()->json(['orders' => $orders]);
+    }
+
+    /**
+     * Mark order as viewed.
+     */
+    public function markAsViewed(Order $order)
+    {
+        $user = Auth::user();
+        $company = $user->company;
+
+        // Verify order belongs to company's restaurant
+        if (!$company || !$company->restaurants->contains($order->restaurant_id)) {
+            return response()->json(['success' => false], 403);
+        }
+
+        $order->markAsViewed();
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Quick status update (for fast actions).
+     */
+    public function quickStatusUpdate(Request $request, Order $order)
+    {
+        $user = Auth::user();
+        $company = $user->company;
+
+        // Verify order belongs to company's restaurant
+        if (!$company || !$company->restaurants->contains($order->restaurant_id)) {
+            return response()->json(['success' => false, 'message' => 'No tienes acceso a este pedido'], 403);
+        }
+
+        $request->validate([
+            'status' => 'required|in:pending,confirmed,preparing,ready,out_for_delivery,delivered',
+        ]);
+
+        $success = $order->updateStatus($request->status, null, $user->id);
+
+        if ($success) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Estado actualizado',
+                'status' => $order->status,
+                'status_label' => $order->status_label,
+            ]);
+        }
+
+        return response()->json(['success' => false, 'message' => 'No se pudo actualizar el estado'], 400);
     }
 }
