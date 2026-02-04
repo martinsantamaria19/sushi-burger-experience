@@ -77,9 +77,11 @@
             Iniciar Sesión
         </button>
 
+        <!--
         <p class="text-center text-muted small mb-0 staggered-item staggered-6">
             ¿No tienes una cuenta? <a href="{{ route('register') }}" class="text-white fw-bold text-decoration-none border-bottom border-light">Regístrate</a>
         </p>
+        -->
     </form>
 </div>
 @endsection
