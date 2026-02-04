@@ -79,28 +79,26 @@ class AuthController extends Controller
             'password' => ['required', 'confirmed', Password::min(8)],
         ]);
 
-        // Get FREE plan by default for new companies
-        $freePlan = SubscriptionPlan::where('slug', 'free')->first();
-        
         // Generate slug from company name
         $companyName = $validated['name'] . ' Company';
         $baseSlug = Str::slug($companyName);
         $slug = $baseSlug;
         $counter = 1;
-        
+
         // Ensure slug is unique
         while (Company::where('slug', $slug)->exists()) {
             $slug = $baseSlug . '-' . $counter;
             $counter++;
         }
-        
+
         // Create company first with FREE plan assigned
         $company = Company::create([
             'name' => $companyName,
             'slug' => $slug,
             'currency' => 'UYU',
             'settings' => [],
-            'plan_id' => $freePlan ? $freePlan->id : null,
+            // Planes desactivados: no asignamos plan específico
+            'plan_id' => null,
         ]);
 
         // Create user and assign to company
@@ -135,7 +133,7 @@ class AuthController extends Controller
         }
 
         // Don't login automatically, require email verification
-        return redirect('login')->with('message', 'Te hemos enviado un correo de verificación. Por favor, verifica tu correo electrónico antes de iniciar sesión.')
+        return redirect()->route('login')->with('message', 'Te hemos enviado un correo de verificación. Por favor, verifica tu correo electrónico antes de iniciar sesión.')
             ->with('user_email', $user->email);
     }
 
@@ -149,7 +147,7 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('login');
+        return redirect()->route('login');
     }
 
     /**
@@ -213,7 +211,7 @@ class AuthController extends Controller
             // Send to n8n webhook
             try {
                 $n8nWebhookUrl = config('services.n8n.password_reset_webhook');
-                
+
                 Http::timeout(10)->post($n8nWebhookUrl, [
                     'email' => $user->email,
                     'name' => $user->name,

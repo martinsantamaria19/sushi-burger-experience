@@ -747,7 +747,7 @@
         font-size: 0.75rem;
         padding: 0 20px;
     ">
-        <p style="margin: 0; opacity: 0.6;">Powered by Sushi Burger Experience</p>
+        <p style="margin: 0; opacity: 0.6;">Powered by <a href="https://mvdstudio.com.uy" style="font-weight: 800; color: white; text-decoration: none; underline: none;" target="_blank">MVD Studio</a></p>
     </div>
 </footer>
 

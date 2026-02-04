@@ -16,18 +16,18 @@ class EmailVerificationController extends Controller
         $user = User::where('email_verification_token', $token)->first();
 
         if (!$user) {
-            return redirect('login')->with('error', 'El enlace de verificación no es válido o ya fue utilizado.');
+            return redirect()->route('login')->with('error', 'El enlace de verificación no es válido o ya fue utilizado.');
         }
 
         // Check if token is still valid (15 minutes)
         $sentAt = $user->email_verification_sent_at;
         if (!$sentAt) {
-            return redirect('login')->with('error', 'El enlace de verificación no es válido.');
+            return redirect()->route('login')->with('error', 'El enlace de verificación no es válido.');
         }
 
         $expiresAt = $sentAt->copy()->addMinutes(15);
         if ($expiresAt->isPast()) {
-            return redirect('login')->with('error', 'El enlace de verificación ha expirado. Por favor, solicita un nuevo enlace.')
+            return redirect()->route('login')->with('error', 'El enlace de verificación ha expirado. Por favor, solicita un nuevo enlace.')
                 ->with('user_email', $user->email)
                 ->with('verification_required', true);
         }
@@ -35,7 +35,7 @@ class EmailVerificationController extends Controller
         // Verify email
         $user->verifyEmail();
 
-        return redirect('login')->with('success', '¡Correo verificado exitosamente! Ya puedes iniciar sesión.');
+        return redirect()->route('login')->with('success', '¡Correo verificado exitosamente! Ya puedes iniciar sesión.');
     }
 
     /**

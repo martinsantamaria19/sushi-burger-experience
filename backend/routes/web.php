@@ -9,7 +9,6 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PublicMenuController;
 use App\Http\Controllers\QrCodeController;
 use App\Http\Controllers\QrRedirectController;
-use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\MercadoPagoWebhookController;
 use App\Http\Controllers\ResourceManagementController;
 use App\Http\Controllers\CartController;
@@ -21,15 +20,22 @@ use App\Http\Controllers\BankAccountController;
 use App\Http\Controllers\DeliveryEstimateController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use App\Models\Company;
 
 Route::get('/', function () {
-    return Auth::check() ? redirect()->route('dashboard') : redirect()->route('login');
+    // Redirigir a la selección pública de restaurantes de la compañía principal
+    $company = Company::first();
+    if ($company) {
+        return redirect()->route('public.menu', ['slug' => $company->slug]);
+    }
+    abort(404, 'No hay compañía configurada');
 });
 
 // Auth Routes
 Route::middleware('guest')->group(function () {
-    Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-    Route::post('/login', [AuthController::class, 'login']);
+    // Punto de entrada al backend: login de administradores
+    Route::get('/backend', [AuthController::class, 'showLogin'])->name('login');
+    Route::post('/backend', [AuthController::class, 'login']);
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
     Route::post('/register', [AuthController::class, 'register']);
 
