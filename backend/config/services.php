@@ -35,23 +35,4 @@ return [
         ],
     ],
 
-    'n8n' => [
-        'password_reset_webhook' => env('N8N_PASSWORD_RESET_WEBHOOK'),
-        'subscription_purchased_webhook' => env('N8N_SUBSCRIPTION_PURCHASED_WEBHOOK', 'https://n8n.example.com/webhook/subscription-purchased'),
-        'subscription_payment_failed_webhook' => env('N8N_SUBSCRIPTION_PAYMENT_FAILED_WEBHOOK', 'https://n8n.example.com/webhook/subscription-payment-failed'),
-        'subscription_cancelled_webhook' => env('N8N_SUBSCRIPTION_CANCELLED_WEBHOOK', 'https://n8n.example.com/webhook/subscription-cancelled'),
-    ],
-
-    'mercadopago' => [
-        'access_token' => env('MP_ACCESS_TOKEN'),
-        'public_key' => env('MP_PUBLIC_KEY'),
-        'app_id' => env('MP_APP_ID', '1029790359644016'), // Sushi Burger Experience App ID
-        'webhook_secret' => env('MP_WEBHOOK_SECRET'),
-        'environment' => env('MP_ENVIRONMENT', 'sandbox'), // sandbox or production
-    ],
-
-    'google_maps' => [
-        'api_key' => env('GOOGLE_MAPS_API_KEY'),
-    ],
-
 ];

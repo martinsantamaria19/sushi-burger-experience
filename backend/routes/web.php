@@ -1,193 +1,34 @@
 <?php
 
+use App\Http\Controllers\Admin\ContactSubmissionController;
+use App\Http\Controllers\Admin\ContentController;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\QuoteSubmissionController;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\RestaurantController;
-use App\Http\Controllers\MenuController;
-use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\ProductController;
-use App\Http\Controllers\PublicMenuController;
-use App\Http\Controllers\QrCodeController;
-use App\Http\Controllers\QrRedirectController;
-use App\Http\Controllers\MercadoPagoWebhookController;
-use App\Http\Controllers\ResourceManagementController;
-use App\Http\Controllers\CartController;
-use App\Http\Controllers\OrderController;
-use App\Http\Controllers\AdminOrderController;
-use App\Http\Controllers\PaymentController;
-use App\Http\Controllers\MercadoPagoAccountController;
-use App\Http\Controllers\BankAccountController;
-use App\Http\Controllers\DeliveryEstimateController;
-use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\ContactController;
+use App\Http\Controllers\HomeController;
 use Illuminate\Support\Facades\Route;
-use App\Models\Company;
 
-Route::get('/', function () {
-    // Redirigir a la selección pública de restaurantes de la compañía principal
-    $company = Company::first();
-    if ($company) {
-        return redirect()->route('public.menu', ['slug' => $company->slug]);
-    }
-    abort(404, 'No hay compañía configurada');
-});
+// Público
+Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/soluciones', [HomeController::class, 'soluciones'])->name('soluciones');
+Route::get('/instalaciones', [HomeController::class, 'instalaciones'])->name('instalaciones');
+Route::get('/contacto', [HomeController::class, 'contacto'])->name('contacto');
+Route::post('/contacto', [ContactController::class, 'enviarContacto'])->name('contacto.enviar');
+Route::get('/cotizar', [HomeController::class, 'cotizar'])->name('cotizar');
+Route::post('/cotizar', [ContactController::class, 'enviarCotizacion'])->name('cotizar.enviar');
 
-// Auth Routes
-Route::middleware('guest')->group(function () {
-    // Login de administradores
-    Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-    Route::post('/login', [AuthController::class, 'login']);
-    Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
-    Route::post('/register', [AuthController::class, 'register']);
+// Admin: login (sin auth)
+Route::get('/admin/login', [AuthController::class, 'showLoginForm'])->name('admin.login');
+Route::post('/admin/login', [AuthController::class, 'login']);
+Route::post('/admin/logout', [AuthController::class, 'logout'])->name('admin.logout');
 
-    // Password Reset Routes
-    Route::get('/forgot-password', [AuthController::class, 'showForgotPassword'])->name('password.request');
-    Route::post('/forgot-password', [AuthController::class, 'sendPasswordResetLink'])->name('password.email');
-    Route::get('/reset-password/{token}', [AuthController::class, 'showResetPassword'])->name('password.reset');
-    Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
-
-    // Email Verification Routes
-    Route::get('/verify-email/{token}', [\App\Http\Controllers\EmailVerificationController::class, 'verify'])->name('email.verify');
-    Route::post('/resend-verification', [\App\Http\Controllers\EmailVerificationController::class, 'resend'])->name('email.resend');
-});
-
-// Entrada principal al backend: /admin
-Route::get('/admin', function () {
-    return Auth::check()
-        ? redirect()->route('admin.dashboard')
-        : redirect()->route('login');
-});
-
-Route::middleware('auth')->group(function () {
-    Route::get('/dashboard', [AuthController::class, 'dashboard'])->name('dashboard');
-
-    Route::prefix('admin')->group(function() {
-        Route::get('/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
-        Route::get('/restaurants', [DashboardController::class, 'restaurants'])->name('admin.restaurants');
-        Route::post('/restaurants/switch', [DashboardController::class, 'switchRestaurant'])->name('admin.restaurants.switch');
-        Route::get('/menu', [DashboardController::class, 'menu'])->name('admin.menu');
-        Route::get('/qrs', [DashboardController::class, 'qrs'])->name('admin.qrs');
-        Route::get('/bank-accounts', [DashboardController::class, 'bankAccounts'])->name('admin.bank-accounts');
-        Route::get('/users', [DashboardController::class, 'users'])->name('admin.users');
-        Route::get('/analytics', [DashboardController::class, 'analytics'])->name('admin.analytics');
-        Route::get('/settings', [DashboardController::class, 'settings'])->name('admin.settings');
-        Route::get('/personalize', [DashboardController::class, 'personalize'])->name('admin.personalize');
-        Route::get('/subscription', [SubscriptionController::class, 'index'])->name('admin.subscription');
-        Route::get('/resource-management', [ResourceManagementController::class, 'index'])->name('admin.resource-management');
-        Route::post('/resource-management/update', [ResourceManagementController::class, 'updateResources'])->name('admin.resource-management.update');
-
-        // Orders routes (admin)
-        Route::prefix('orders')->name('admin.orders.')->group(function () {
-            Route::get('/', [AdminOrderController::class, 'index'])->name('index');
-            Route::get('/new/count', [AdminOrderController::class, 'getNewOrdersCount'])->name('new.count');
-            Route::get('/new/list', [AdminOrderController::class, 'getNewOrders'])->name('new.list');
-            Route::post('/{order}/viewed', [AdminOrderController::class, 'markAsViewed'])->name('mark-viewed');
-            Route::post('/{order}/quick-status', [AdminOrderController::class, 'quickStatusUpdate'])->name('quick-status');
-            Route::get('/{order}', [AdminOrderController::class, 'show'])->name('show');
-            Route::put('/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('update-status');
-            Route::post('/{order}/cancel', [AdminOrderController::class, 'cancel'])->name('cancel');
-        });
-
-        // MercadoPago configuration routes (admin)
-        Route::prefix('mercadopago')->name('admin.mercadopago.')->group(function () {
-            Route::get('/', [MercadoPagoAccountController::class, 'index'])->name('index');
-            Route::post('/', [MercadoPagoAccountController::class, 'store'])->name('store');
-            Route::delete('/', [MercadoPagoAccountController::class, 'destroy'])->name('destroy');
-            Route::post('/test', [MercadoPagoAccountController::class, 'test'])->name('test');
-        });
-    });
-
-    // API-like routes for the dashboard
-    Route::prefix('dashboard-api')->name('api.')->group(function () {
-        Route::get('/analytics', [DashboardController::class, 'getAnalytics'])->name('analytics');
-        Route::get('/sales', [DashboardController::class, 'getSalesAnalytics'])->name('sales');
-        Route::get('/products-analytics', [DashboardController::class, 'getProductsAnalytics'])->name('products.analytics');
-        Route::put('/company', [DashboardController::class, 'updateCompany'])->name('company.update');
-        Route::apiResource('restaurants', RestaurantController::class);
-        Route::apiResource('menus', MenuController::class);
-        Route::apiResource('categories', CategoryController::class);
-        Route::apiResource('products', ProductController::class);
-        Route::apiResource('qrcodes', QrCodeController::class);
-        Route::apiResource('users', \App\Http\Controllers\UserController::class);
-        Route::get('/bank-accounts', [BankAccountController::class, 'index'])->name('bank-accounts.index');
-        Route::post('/bank-accounts', [BankAccountController::class, 'store'])->name('bank-accounts.store');
-        Route::put('/bank-accounts/{bank_account}', [BankAccountController::class, 'update'])->name('bank-accounts.update');
-        Route::delete('/bank-accounts/{bank_account}', [BankAccountController::class, 'destroy'])->name('bank-accounts.destroy');
-    });
-
-    // Subscription routes
-    Route::prefix('subscriptions')->group(function () {
-        Route::post('/create-intent', [SubscriptionController::class, 'createIntent'])->name('subscription.create-intent');
-        Route::post('/create-with-token', [SubscriptionController::class, 'createWithCardToken'])->name('subscription.create-with-token');
-        Route::get('/current', [SubscriptionController::class, 'show'])->name('subscription.show');
-        Route::post('/cancel', [SubscriptionController::class, 'cancel'])->name('subscription.cancel');
-        Route::post('/reactivate', [SubscriptionController::class, 'reactivate'])->name('subscription.reactivate');
-        Route::get('/payment-history', [SubscriptionController::class, 'paymentHistory'])->name('subscription.payment-history');
-        Route::get('/success', [SubscriptionController::class, 'success'])->name('subscription.success');
-        Route::get('/failure', [SubscriptionController::class, 'failure'])->name('subscription.failure');
-        Route::get('/pending', [SubscriptionController::class, 'pending'])->name('subscription.pending');
-    });
-
-    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-});
-
-// Webhooks (sin autenticación, vienen de MercadoPago)
-Route::post('/api/webhooks/mercadopago', [MercadoPagoWebhookController::class, 'handle'])
-    ->name('webhooks.mercadopago')
-    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
-
-Route::post('/api/webhooks/mercadopago/orders', [MercadoPagoWebhookController::class, 'handleOrderPayment'])
-    ->name('webhooks.mercadopago.orders')
-    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
-
-// Estimación de tiempo de entrega (público, para checkout)
-Route::get('/api/delivery-estimate', [DeliveryEstimateController::class, 'estimate'])
-    ->name('api.delivery-estimate');
-
-// Cart routes (públicas, sin autenticación requerida)
-Route::prefix('cart')->name('cart.')->group(function () {
-    Route::get('/', [CartController::class, 'index'])->name('index');
-    Route::post('/add', [CartController::class, 'add'])->name('add');
-    Route::put('/{cartItem}', [CartController::class, 'update'])->name('update');
-    Route::delete('/{cartItem}', [CartController::class, 'remove'])->name('remove');
-    Route::delete('/', [CartController::class, 'clear'])->name('clear');
-    Route::get('/total', [CartController::class, 'getTotal'])->name('total');
-});
-
-// Order routes (públicas)
-Route::prefix('orders')->name('orders.')->group(function () {
-    Route::get('/checkout', [OrderController::class, 'checkout'])->name('checkout');
-    Route::post('/', [OrderController::class, 'store'])->name('store');
-    Route::get('/{order}/payment/{token}', [OrderController::class, 'payment'])->name('payment');
-    Route::get('/{order}/bank-transfer/{token}', [OrderController::class, 'bankTransfer'])->name('bank-transfer');
-    Route::get('/success/{order}/{token}', [OrderController::class, 'success'])->name('success');
-    Route::get('/failure', [OrderController::class, 'failure'])->name('failure');
-    Route::get('/track', [OrderController::class, 'track'])->name('track');
-    Route::get('/{order}/track/{token}', [OrderController::class, 'show'])->name('show');
-});
-
-// Payment routes (públicas)
-Route::prefix('payments')->name('payments.')->group(function () {
-    Route::post('/{order}/preference', [PaymentController::class, 'createPreference'])->name('create-preference');
-    Route::post('/{order}/process-mercadopago', [PaymentController::class, 'processMercadoPagoPayment'])->name('process-mercadopago');
-    Route::post('/{order}/bank-transfer', [PaymentController::class, 'processBankTransfer'])->name('bank-transfer');
-    Route::get('/{payment}/verify', [PaymentController::class, 'verifyPayment'])->name('verify');
-    Route::get('/bank-accounts', [PaymentController::class, 'getBankAccounts'])->name('bank-accounts');
-});
-
-// Case-insensitive public menu route (debe ir al final para no interferir con otras rutas)
-Route::get('/{slug}', [PublicMenuController::class, 'show'])->name('public.menu');
-
-// QR Scan Redirect & Tracking
-Route::get('/scan/{slug}', [QrRedirectController::class, 'handle'])->name('qr.scan');
-
-// Super Admin Routes
-Route::middleware(['auth', 'super_admin'])->prefix('super-admin')->name('super_admin.')->group(function () {
-    Route::get('/dashboard', [\App\Http\Controllers\SuperAdminController::class, 'dashboard'])->name('dashboard');
-    Route::get('/users', [\App\Http\Controllers\SuperAdminController::class, 'users'])->name('users');
-    Route::post('/users/{user}/assign-plan', [\App\Http\Controllers\SuperAdminController::class, 'assignPlan'])->name('users.assign_plan');
-    Route::get('/plans', [\App\Http\Controllers\SuperAdminController::class, 'plans'])->name('plans');
-    Route::put('/plans/{plan}', [\App\Http\Controllers\SuperAdminController::class, 'updatePlan'])->name('plans.update');
-    Route::get('/coupons', [\App\Http\Controllers\SuperAdminController::class, 'coupons'])->name('coupons');
-    Route::post('/coupons', [\App\Http\Controllers\SuperAdminController::class, 'createCoupon'])->name('coupons.create');
-    Route::patch('/coupons/{coupon}/toggle', [\App\Http\Controllers\SuperAdminController::class, 'toggleCoupon'])->name('coupons.toggle');
+// Admin: panel (con auth)
+Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/contents', [ContentController::class, 'index'])->name('contents.index');
+    Route::get('/contents/{group}/edit', [ContentController::class, 'edit'])->name('contents.edit');
+    Route::put('/contents/{group}', [ContentController::class, 'update'])->name('contents.update');
+    Route::get('/contacts', [ContactSubmissionController::class, 'index'])->name('contacts.index');
+    Route::get('/quotes', [QuoteSubmissionController::class, 'index'])->name('quotes.index');
 });

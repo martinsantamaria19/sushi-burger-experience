@@ -1,11 +1,11 @@
-# Makefile para el proyecto Sushi Burger Experience
+# Makefile para BoxCenter (Laravel)
 
 # Definición de variables
 DOCKER_COMPOSE = docker compose
 PHP_SERVICE = app
-PHP_CONTAINER = sushiburgerexperience_app
+PHP_CONTAINER = boxcenter_app
 
-.PHONY: php up down restart migrate fresh seed build dev fix-permissions
+.PHONY: php up down restart migrate fresh seed build build-assets dev fix-permissions storage-link setup
 
 # Comando para entrar a la terminal del contenedor PHP
 php:
@@ -18,6 +18,9 @@ dev:
 	@echo "✅ Servicios levantados:"
 	@echo "   📱 Laravel app: http://localhost:8080"
 	@echo "   ⚡ Vite dev server: http://localhost:5173 (para assets)"
+	@echo ""
+	@echo "📦 Instalando dependencias de Node en el contenedor (si hace falta)..."
+	@docker exec $(PHP_CONTAINER) sh -c "cd /var/www && npm install"
 	@echo ""
 	@echo "🚀 Levantando Vite para cambios en tiempo real..."
 	@echo "   (Accede a http://localhost:8080 para ver la aplicación)"
@@ -39,6 +42,10 @@ restart:
 build:
 	@$(DOCKER_COMPOSE) build
 
+# Compilar CSS/JS (Vite) - necesario para ver estilos si no usás "make dev"
+build-assets:
+	@docker exec $(PHP_CONTAINER) sh -c "cd /var/www && npm run build"
+
 # Comandos de Laravel (ejecutados dentro del contenedor)
 migrate:
 	@docker exec -it $(PHP_CONTAINER) php artisan migrate
@@ -51,6 +58,17 @@ fresh:
 
 seed:
 	@docker exec -it $(PHP_CONTAINER) php artisan db:seed
+
+# Enlace simbólico para subida de imágenes (admin)
+storage-link:
+	@docker exec $(PHP_CONTAINER) php artisan storage:link
+
+# Primera vez: migrate + seed + storage-link
+setup:
+	@$(MAKE) migrate
+	@$(MAKE) seed
+	@$(MAKE) storage-link
+	@echo "✅ Listo. Admin: http://localhost:8080/admin/login (admin@boxcenter.com.uy / password)"
 
 # Arreglar permisos de storage y bootstrap/cache
 fix-permissions:

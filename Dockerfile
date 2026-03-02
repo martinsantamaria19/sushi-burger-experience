@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y \
     libicu-dev \
     curl \
     ca-certificates \
-    && docker-php-ext-install pdo_mysql mbstring zip exif pcntl intl \
+    && docker-php-ext-install pdo_mysql mbstring zip exif pcntl intl bcmath \
     && curl -sL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs
 
