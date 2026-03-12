@@ -98,7 +98,7 @@ class MercadoPagoOrderService
             $items = $order->items->map(function ($item) {
                 return [
                     'id' => (string) $item->product_id ?? 'item-' . $item->id,
-                    'title' => $item->product_name,
+                    'title' => $item->display_name,
                     'description' => $item->notes ?? '',
                     'quantity' => $item->quantity,
                     'unit_price' => (float) $item->product_price,

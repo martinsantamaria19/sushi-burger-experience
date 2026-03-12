@@ -36,6 +36,23 @@
                     </div>
                 </div>
 
+                <h3 class="h5 fw-bold mb-4 pb-3 mt-5 pt-4 border-top" style="border-color: var(--color-border) !important;">Métodos de pago</h3>
+                <div class="row g-4 align-items-center mb-4">
+                    <div class="col-md-4">
+                        <label class="form-label mb-md-0">Transferencia bancaria</label>
+                        <div class="form-text small text-muted">Si está activa, los clientes podrán elegir transferencia y verás "Cuentas bancarias" en el menú.</div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="form-check form-switch">
+                            @php
+                                $bankTransferEnabled = $company->hasBankTransferEnabled();
+                            @endphp
+                            <input class="form-check-input" type="checkbox" name="bank_transfer_enabled" id="bankTransferEnabled" value="1" {{ $bankTransferEnabled ? 'checked' : '' }}>
+                            <label class="form-check-label" for="bankTransferEnabled">Activar transferencia bancaria</label>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="pt-4 mt-4 border-top text-end" style="border-color: var(--color-border) !important;">
                     <button type="submit" class="btn btn-cartify-primary px-5" id="saveSettingsBtn">
                         Guardar cambios
@@ -61,6 +78,7 @@
             const formData = {
                 name: document.getElementById('companyName').value,
                 currency: document.getElementById('companyCurrency').value,
+                bank_transfer_enabled: document.getElementById('bankTransferEnabled').checked ? 1 : 0,
             };
 
             // Disable button and show loading state

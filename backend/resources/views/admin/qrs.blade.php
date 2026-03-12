@@ -299,39 +299,18 @@
                             });
                             loadQrs();
                         } else {
-                            // Handle subscription limit errors
-                            if (response.status === 403 && responseData.error_code === 'SUBSCRIPTION_LIMIT_EXCEEDED') {
-                                if (window.showSubscriptionLimitModal) {
-                                    window.showSubscriptionLimitModal(responseData);
-                                } else {
-                                    await window.CartifySwal.fire({
-                                        icon: 'warning',
-                                        title: 'Límite de Plan Alcanzado',
-                                        text: responseData.message || 'Has alcanzado el límite de códigos QR permitidos en tu plan.',
-                                        showCancelButton: true,
-                                        confirmButtonText: 'Ver Planes',
-                                        cancelButtonText: 'Cancelar',
-                                        confirmButtonColor: '#7c3aed',
-                                    }).then((result) => {
-                                        if (result.isConfirmed) {
-                                            window.location.href = responseData.upgrade_url || '{{ route("admin.subscription") }}';
-                                        }
-                                    });
-                                }
-                            } else {
-                                let errorMessage = 'Error al crear el código QR';
-                                if (responseData.message) {
-                                    errorMessage = responseData.message;
-                                } else if (responseData.errors) {
-                                    const errors = Object.values(responseData.errors).flat();
-                                    errorMessage = errors.join('\n');
-                                }
-                                await window.CartifySwal.fire({
-                                    icon: 'error',
-                                    title: 'Error',
-                                    text: errorMessage
-                                });
+                            let errorMessage = 'Error al crear el código QR';
+                            if (responseData.message) {
+                                errorMessage = responseData.message;
+                            } else if (responseData.errors) {
+                                const errors = Object.values(responseData.errors).flat();
+                                errorMessage = errors.join('\n');
                             }
+                            await window.CartifySwal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: errorMessage
+                            });
                         }
                     } catch (error) {
                         console.error('Error:', error);

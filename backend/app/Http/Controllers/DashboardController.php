@@ -91,7 +91,7 @@ class DashboardController extends Controller
 
         $menu = $restaurant ? $restaurant->menus()->first() : null;
         if ($menu) {
-            $menu->load(['categories.products']);
+            $menu->load(['categories.products.variants']);
         }
 
         return view('admin.menu', array_merge($data, ['menu' => $menu]));
@@ -105,6 +105,10 @@ class DashboardController extends Controller
     public function bankAccounts(): View
     {
         $data = $this->getDashboardData();
+        $company = $data['company'] ?? null;
+        if (!$company || !$company->hasBankTransferEnabled()) {
+            abort(403, 'La transferencia bancaria está desactivada. Actívala en Configuración → Métodos de pago.');
+        }
         $restaurant = $data['activeRestaurant'];
         $bankAccounts = $restaurant ? $restaurant->bankAccounts()->orderBy('is_active', 'desc')->orderBy('created_at', 'desc')->get() : collect();
         return view('admin.bank-accounts', array_merge($data, ['bankAccounts' => $bankAccounts]));
@@ -156,6 +160,7 @@ class DashboardController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'currency' => 'required|string|size:3|in:UYU,USD,ARS,EUR',
+            'bank_transfer_enabled' => 'nullable|boolean',
         ]);
 
         // Generate slug from company name if it changed
@@ -172,10 +177,16 @@ class DashboardController extends Controller
             }
         }
 
+        $settings = $company->settings ?? [];
+        if ($request->has('bank_transfer_enabled')) {
+            $settings['bank_transfer_enabled'] = (bool) $request->bank_transfer_enabled;
+        }
+
         $company->update([
             'name' => $request->name,
             'slug' => $slug,
             'currency' => $request->currency,
+            'settings' => $settings,
         ]);
 
         return response()->json([

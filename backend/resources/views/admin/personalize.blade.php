@@ -25,7 +25,7 @@
                         <div class="d-flex align-items-center gap-4 p-3 rounded-4" style="background: rgba(255,255,255,0.03); border: 1px dashed var(--color-border);">
                             <div id="logoPreview" class="rounded-3 overflow-hidden d-flex align-items-center justify-content-center" style="width: 100px; height: 100px; background: var(--bg-dark);">
                                 @if(isset($activeRestaurant) && $activeRestaurant && $activeRestaurant->logo_path)
-                                    <img src="{{ str_starts_with($activeRestaurant->logo_path, 'http') ? $activeRestaurant->logo_path : asset('storage/' . $activeRestaurant->logo_path) }}" class="w-100 h-100" style="object-fit: cover;">
+                                    <img src="{{ str_starts_with($activeRestaurant->logo_path, 'http') ? $activeRestaurant->logo_path : storage_url($activeRestaurant->logo_path) }}" class="w-100 h-100" style="object-fit: cover;">
                                 @else
                                     <i data-lucide="image" class="text-muted" style="width: 32px;"></i>
                                 @endif
@@ -167,7 +167,7 @@
                         <div style="padding: 40px 20px 20px; background: linear-gradient(to bottom, rgba(124, 58, 237, 0.15), transparent); text-align: center;">
                             <div style="width: 60px; height: 60px; border-radius: 16px; background: rgba(255,255,255,0.1); margin: 0 auto 16px; display: flex; align-items: center; justify-content: center;">
                                 @if($activeRestaurant->logo_path)
-                                    <img src="{{ str_starts_with($activeRestaurant->logo_path, 'http') ? $activeRestaurant->logo_path : asset('storage/' . $activeRestaurant->logo_path) }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 16px;">
+                                    <img src="{{ str_starts_with($activeRestaurant->logo_path, 'http') ? $activeRestaurant->logo_path : storage_url($activeRestaurant->logo_path) }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 16px;">
                                 @elseif($activeRestaurant->logo_path === null)
                                     <i data-lucide="utensils-crossed" style="width: 28px; color: #7c3aed;"></i>
                                 @else

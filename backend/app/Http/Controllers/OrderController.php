@@ -24,7 +24,7 @@ class OrderController extends Controller
     {
         $context = $this->getCartContext();
 
-        $cartItems = CartItem::with(['product', 'restaurant'])
+        $cartItems = CartItem::with(['product', 'productVariant', 'cartItemVariants.productVariant', 'restaurant'])
             ->forCurrentContext($context['session_id'], $context['user_id'])
             ->get();
 
@@ -48,6 +48,7 @@ class OrderController extends Controller
             'total' => $total,
             'user' => Auth::user(),
             'googleMapsApiKey' => config('services.google_maps.api_key', ''),
+            'bankTransferEnabled' => $company->hasBankTransferEnabled(),
         ]);
     }
 
@@ -71,7 +72,7 @@ class OrderController extends Controller
 
         $context = $this->getCartContext();
 
-        $cartItems = CartItem::with(['product', 'restaurant'])
+        $cartItems = CartItem::with(['product', 'productVariant', 'cartItemVariants.productVariant', 'restaurant'])
             ->forCurrentContext($context['session_id'], $context['user_id'])
             ->get();
 
@@ -90,6 +91,9 @@ class OrderController extends Controller
         $company = $restaurant->company ?? null;
         if (!$company || !$company->hasEcommerce()) {
             abort(404);
+        }
+        if ($request->payment_method === 'bank_transfer' && !$company->hasBankTransferEnabled()) {
+            return back()->with('error', 'El método de pago transferencia bancaria no está disponible.')->withInput();
         }
         $subtotal = $cartItems->sum(function ($item) {
             return $item->subtotal;
@@ -129,14 +133,32 @@ class OrderController extends Controller
 
             // Create order items from cart items
             foreach ($cartItems as $cartItem) {
+                $productName = $cartItem->product->name;
+                $variantName = null;
+                $variantSelections = null;
+                if ($cartItem->cartItemVariants->isNotEmpty()) {
+                    $variantSelections = $cartItem->cartItemVariants->map(function ($civ) {
+                        return [
+                            'variant_name' => $civ->productVariant ? $civ->productVariant->name : 'Variante',
+                            'gluten_free' => $civ->gluten_free,
+                        ];
+                    })->toArray();
+                    $variantName = $cartItem->cartItemVariants->map(fn ($civ) => $civ->productVariant ? $civ->productVariant->name : '')->filter()->implode(', ');
+                } elseif ($cartItem->product_variant_id && $cartItem->productVariant) {
+                    $variantName = $cartItem->productVariant->name;
+                }
                 OrderItem::create([
                     'order_id' => $order->id,
                     'product_id' => $cartItem->product_id,
-                    'product_name' => $cartItem->product->name,
+                    'product_variant_id' => $cartItem->product_variant_id,
+                    'product_name' => $productName,
+                    'variant_name' => $variantName,
+                    'variant_selections' => $variantSelections,
                     'product_price' => $cartItem->price,
                     'quantity' => $cartItem->quantity,
                     'subtotal' => $cartItem->subtotal,
                     'notes' => $cartItem->notes,
+                    'gluten_free' => $cartItem->gluten_free ?? false,
                 ]);
             }
 

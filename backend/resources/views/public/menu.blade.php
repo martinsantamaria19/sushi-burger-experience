@@ -447,6 +447,11 @@
         .cartify-link:hover {
             color: #ffffff !important;
         }
+
+        .btn-ver-producto:hover {
+            color: var(--color-btn-text);
+            filter: brightness(1.1);
+        }
     </style>
 </head>
 <body>
@@ -456,7 +461,7 @@
     <div class="container text-center">
         <div class="logo-container">
             @if($restaurant->logo_path)
-                <img src="{{ str_starts_with($restaurant->logo_path, 'http') ? $restaurant->logo_path : asset('storage/' . $restaurant->logo_path) }}" alt="{{ $restaurant->name }}" class="restaurant-logo">
+                <img src="{{ str_starts_with($restaurant->logo_path, 'http') ? $restaurant->logo_path : storage_url($restaurant->logo_path) }}" alt="{{ $restaurant->name }}" class="restaurant-logo">
             @else
                 <div class="restaurant-logo d-flex align-items-center justify-content-center bg-dark">
                     <i data-lucide="utensils-cross-lines" style="width: 44px; color: var(--color-primary);"></i>
@@ -494,7 +499,7 @@
                         <div class="product-card product-card-horizontal">
                             <div class="product-image-box">
                                 @if($product->image_path)
-                                    <img src="{{ str_starts_with($product->image_path, 'http') ? $product->image_path : asset('storage/' . $product->image_path) }}" alt="{{ $product->name }}" class="product-img">
+                                    <img src="{{ str_starts_with($product->image_path, 'http') ? $product->image_path : storage_url($product->image_path) }}" alt="{{ $product->name }}" class="product-img">
                                 @else
                                     <div class="w-100 h-100 d-flex align-items-center justify-content-center" style="opacity: 0.1;">
                                         <i data-lucide="image" style="width: 40px;"></i>
@@ -506,12 +511,11 @@
                                 <p class="product-desc">{{ $product->description }}</p>
                                 <div class="product-footer">
                                     <span class="product-price">${{ number_format($product->price, 0, ',', '.') }}</span>
-                                    @if($hasEcommerce)
-                                    <button class="btn-add-cart" data-product-id="{{ $product->id }}" data-product-name="{{ $product->name }}" data-product-price="{{ $product->price }}" title="Agregar al carrito">
-                                        <i data-lucide="shopping-cart"></i>
-                                    </button>
-                                    @endif
                                 </div>
+                                <a href="{{ route('public.product', [$restaurant->slug, $product->id]) }}" class="btn-ver-producto mt-2 w-100 py-2 rounded-3 d-inline-flex align-items-center justify-content-center gap-2" style="background: var(--color-btn-bg); color: var(--color-btn-text); font-weight: 600; text-decoration: none;">
+                                    <i data-lucide="eye" style="width: 18px; height: 18px;"></i>
+                                    Ver producto
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -630,18 +634,9 @@
     sections.forEach(section => observer.observe(section));
 
     @if($hasEcommerce)
-    // Cart functionality (solo si ecommerce está habilitado)
-    const cartButtons = document.querySelectorAll('.btn-add-cart');
     const cartBadge = document.getElementById('cartBadge');
-    const cartFloatingBtn = document.getElementById('cartFloatingBtn');
-
     function updateCartBadge() {
-        fetch('/cart/total', {
-            method: 'GET',
-            headers: {
-                'Accept': 'application/json',
-            }
-        })
+        fetch('/cart/total', { headers: { 'Accept': 'application/json' } })
             .then(response => response.json())
             .then(data => {
                 if (data.count > 0 && cartBadge) {
@@ -653,75 +648,6 @@
             })
             .catch(error => console.error('Error loading cart:', error));
     }
-
-    // Add to cart
-    cartButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
-            const productId = this.dataset.productId;
-            const productName = this.dataset.productName;
-            const productPrice = this.dataset.productPrice;
-
-            this.disabled = true;
-            const originalHTML = this.innerHTML;
-            this.innerHTML = '<i data-lucide="loader-2" style="width: 20px; height: 20px;"></i>';
-            lucide.createIcons();
-
-            fetch('/cart/add', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({
-                    product_id: productId,
-                    quantity: 1
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    updateCartBadge();
-
-                    MenuSwal.fire({
-                        icon: 'success',
-                        title: '¡Agregado!',
-                        text: data.message,
-                        timer: 2000,
-                        showConfirmButton: false,
-                        toast: true,
-                        position: 'top-end'
-                    });
-
-                    this.style.transform = 'scale(1.2)';
-                    setTimeout(() => {
-                        this.style.transform = 'scale(1)';
-                    }, 200);
-                } else {
-                    MenuSwal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: data.message || 'No se pudo agregar al carrito'
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                MenuSwal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Ocurrió un error al agregar al carrito'
-                });
-            })
-            .finally(() => {
-                this.disabled = false;
-                this.innerHTML = originalHTML;
-                lucide.createIcons();
-            });
-        });
-    });
-
     updateCartBadge();
     @endif
 </script>

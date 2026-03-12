@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class CartItem extends Model
 {
@@ -15,9 +16,11 @@ class CartItem extends Model
         'user_id',
         'restaurant_id',
         'product_id',
+        'product_variant_id',
         'quantity',
         'price',
         'notes',
+        'gluten_free',
     ];
 
     protected $casts = [
@@ -25,7 +28,7 @@ class CartItem extends Model
         'price' => 'decimal:2',
         'restaurant_id' => 'integer',
         'product_id' => 'integer',
-        'user_id' => 'integer',
+        'gluten_free' => 'boolean',
     ];
 
     /**
@@ -50,6 +53,41 @@ class CartItem extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function productVariant(): BelongsTo
+    {
+        return $this->belongsTo(ProductVariant::class, 'product_variant_id');
+    }
+
+    public function cartItemVariants(): HasMany
+    {
+        return $this->hasMany(CartItemVariant::class)->orderBy('sort_order');
+    }
+
+    public function getDisplayNameAttribute(): string
+    {
+        $productName = $this->relationLoaded('product') && $this->product ? $this->product->name : 'Producto';
+        if ($this->product_variant_id && $this->relationLoaded('productVariant') && $this->productVariant) {
+            $name = $productName . ' - ' . $this->productVariant->name;
+            if ($this->gluten_free) {
+                $name .= ' (Sin gluten)';
+            }
+            return $name;
+        }
+        if ($this->relationLoaded('cartItemVariants') && $this->cartItemVariants->isNotEmpty()) {
+            $parts = $this->cartItemVariants->map(function ($civ) {
+                $n = $civ->relationLoaded('productVariant') && $civ->productVariant
+                    ? $civ->productVariant->name
+                    : 'Variante';
+                if ($civ->gluten_free) {
+                    $n .= ' (Sin gluten)';
+                }
+                return $n;
+            });
+            return $productName . ' - ' . $parts->implode(', ');
+        }
+        return $productName;
     }
 
     /**

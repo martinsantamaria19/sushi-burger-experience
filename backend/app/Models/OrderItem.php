@@ -13,17 +13,23 @@ class OrderItem extends Model
     protected $fillable = [
         'order_id',
         'product_id',
+        'product_variant_id',
         'product_name',
+        'variant_name',
+        'variant_selections',
         'product_price',
         'quantity',
         'subtotal',
         'notes',
+        'gluten_free',
     ];
 
     protected $casts = [
         'product_price' => 'decimal:2',
         'quantity' => 'integer',
         'subtotal' => 'decimal:2',
+        'gluten_free' => 'boolean',
+        'variant_selections' => 'array',
     ];
 
     /**
@@ -40,6 +46,32 @@ class OrderItem extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function productVariant(): BelongsTo
+    {
+        return $this->belongsTo(ProductVariant::class, 'product_variant_id');
+    }
+
+    public function getDisplayNameAttribute(): string
+    {
+        $name = $this->product_name;
+        if ($this->variant_selections && is_array($this->variant_selections)) {
+            $parts = array_map(function ($v) {
+                $n = $v['variant_name'] ?? 'Variante';
+                if (!empty($v['gluten_free'])) {
+                    $n .= ' (Sin gluten)';
+                }
+                return $n;
+            }, $this->variant_selections);
+            $name .= ' - ' . implode(', ', $parts);
+        } elseif ($this->variant_name) {
+            $name .= ' - ' . $this->variant_name;
+            if ($this->gluten_free) {
+                $name .= ' (Sin gluten)';
+            }
+        }
+        return $name;
     }
 
     /**

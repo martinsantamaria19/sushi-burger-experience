@@ -57,11 +57,11 @@ class ProductController extends Controller
         $product = $this->productRepository->find($id);
 
         if ($request->hasFile('image_path')) {
-            $file = $request->file('image_path');
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $path = 'uploads/products/' . ($product->restaurant_id ?? 'unknown');
-            $file->move(public_path($path), $filename);
-            $data['image_path'] = asset($path . '/' . $filename);
+            $path = $request->file('image_path')->store(
+                'products/' . ($product->restaurant_id ?? 'unknown'),
+                'public'
+            );
+            $data['image_path'] = $path;
         }
 
         $updated = $this->productRepository->update($id, $data);

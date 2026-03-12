@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Company;
+use App\Models\Product;
 use App\Models\Restaurant;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -34,7 +35,7 @@ class PublicMenuController extends Controller
             ->where('is_blocked', false)
             ->with(['categories' => function($query) {
                 $query->with(['products' => function($q) {
-                    $q->orderBy('sort_order', 'asc');
+                    $q->with('variants')->orderBy('sort_order', 'asc');
                 }])->orderBy('id', 'asc');
             }, 'company'])
             ->first();
@@ -51,5 +52,45 @@ class PublicMenuController extends Controller
         
         // Mostrar el menú del restaurante específico
         return view('public.menu', compact('restaurant', 'company'));
+    }
+
+    /**
+     * Show individual product page with all variants and add to cart.
+     */
+    public function showProduct(string $restaurant_slug, int $product): View
+    {
+        $restaurant = Restaurant::where('slug', $restaurant_slug)
+            ->where('is_active', true)
+            ->where('is_blocked', false)
+            ->with('company')
+            ->first();
+
+        if (!$restaurant) {
+            abort(404, 'Restaurante no encontrado');
+        }
+
+        $productModel = Product::with('variants')
+            ->where('id', $product)
+            ->where('restaurant_id', $restaurant->id)
+            ->first();
+
+        if (!$productModel || $productModel->trashed()) {
+            abort(404, 'Producto no encontrado');
+        }
+
+        if (!$productModel->isAvailable()) {
+            abort(404, 'Producto no disponible');
+        }
+
+        $company = $restaurant->company;
+        if (!$company) {
+            abort(404);
+        }
+
+        return view('public.product', [
+            'product' => $productModel,
+            'restaurant' => $restaurant,
+            'company' => $company,
+        ]);
     }
 }

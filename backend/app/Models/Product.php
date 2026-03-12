@@ -21,6 +21,7 @@ class Product extends Model
         'image_path',
         'sort_order',
         'is_active',
+        'max_variants_selectable',
     ];
 
     protected $casts = [
@@ -28,6 +29,7 @@ class Product extends Model
         'is_active' => 'boolean',
         'sort_order' => 'integer',
         'restaurant_id' => 'integer',
+        'max_variants_selectable' => 'integer',
     ];
 
     public function restaurant(): BelongsTo
@@ -38,6 +40,11 @@ class Product extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function variants(): HasMany
+    {
+        return $this->hasMany(ProductVariant::class)->orderBy('sort_order');
     }
 
     /**

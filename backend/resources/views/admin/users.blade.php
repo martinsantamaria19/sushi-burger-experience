@@ -317,53 +317,18 @@
                             });
                             setTimeout(() => location.reload(), 1500);
                         } else {
-                            // Handle subscription limit errors
-                            if (response.status === 403 && responseData.error_code === 'SUBSCRIPTION_LIMIT_EXCEEDED') {
-                                if (window.showSubscriptionLimitModal) {
-                                    window.showSubscriptionLimitModal(responseData);
-                                } else {
-                                    window.CartifySwal.fire({
-                                        icon: 'warning',
-                                        title: 'Límite de Plan Alcanzado',
-                                        html: `
-                                            <div class="text-start">
-                                                <p class="mb-3">${responseData.message || 'Has alcanzado el límite de usuarios permitidos en tu plan.'}</p>
-                                                <div class="bg-light p-3 rounded mb-3">
-                                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                                        <span>Actual:</span>
-                                                        <strong>${responseData.current}</strong>
-                                                    </div>
-                                                    <div class="d-flex justify-content-between align-items-center">
-                                                        <span>Límite del plan:</span>
-                                                        <strong>${responseData.limit || 'Ilimitados'}</strong>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        `,
-                                        showCancelButton: true,
-                                        confirmButtonText: 'Ver Planes',
-                                        cancelButtonText: 'Cancelar',
-                                        confirmButtonColor: '#7c3aed',
-                                    }).then((result) => {
-                                        if (result.isConfirmed) {
-                                            window.location.href = responseData.upgrade_url || '{{ route("admin.subscription") }}';
-                                        }
-                                    });
-                                }
-                            } else {
-                                let errorMessage = 'Error al guardar usuario';
-                                if (responseData.message) {
-                                    errorMessage = responseData.message;
-                                } else if (responseData.errors) {
-                                    const errors = Object.values(responseData.errors).flat();
-                                    errorMessage = errors.join('\n');
-                                }
-                                window.CartifySwal.fire({
-                                    icon: 'error',
-                                    title: 'Error',
-                                    text: errorMessage
-                                });
+                            let errorMessage = 'Error al guardar usuario';
+                            if (responseData.message) {
+                                errorMessage = responseData.message;
+                            } else if (responseData.errors) {
+                                const errors = Object.values(responseData.errors).flat();
+                                errorMessage = errors.join('\n');
                             }
+                            window.CartifySwal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: errorMessage
+                            });
                         }
                     } catch (error) {
                         console.error('Error:', error);

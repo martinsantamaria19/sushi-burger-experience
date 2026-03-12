@@ -87,6 +87,16 @@ class Company extends Model
     {
         return (bool) ($this->has_ecommerce ?? false);
     }
+
+    /**
+     * Check if bank transfer is enabled as payment method.
+     * Default true for backward compatibility.
+     */
+    public function hasBankTransferEnabled(): bool
+    {
+        $settings = $this->settings ?? [];
+        return (bool) ($settings['bank_transfer_enabled'] ?? true);
+    }
 }
 
 

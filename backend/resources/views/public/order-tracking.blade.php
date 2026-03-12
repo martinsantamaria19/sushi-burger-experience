@@ -315,7 +315,7 @@
         @foreach($order->items as $item)
             <div class="item-row">
                 <div>
-                    <div class="item-name">{{ $item->product_name }}</div>
+                    <div class="item-name">{{ $item->display_name }}</div>
                     <div class="item-quantity">Cantidad: {{ $item->quantity }}</div>
                 </div>
                 <div class="item-price">${{ number_format($item->subtotal, 0, ',', '.') }}</div>

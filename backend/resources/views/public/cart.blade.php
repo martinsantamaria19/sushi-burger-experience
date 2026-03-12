@@ -291,11 +291,19 @@
                 </div>
 
                 @foreach($items as $item)
+                    @php
+                        if ($item->cartItemVariants->isNotEmpty() && $item->cartItemVariants->first()->productVariant && $item->cartItemVariants->first()->productVariant->image_path) {
+                            $itemImage = storage_url($item->cartItemVariants->first()->productVariant->image_path);
+                        } elseif ($item->product_variant_id && $item->productVariant && $item->productVariant->image_path) {
+                            $itemImage = storage_url($item->productVariant->image_path);
+                        } else {
+                            $itemImage = $item->product->image_path ? (str_starts_with($item->product->image_path, 'http') ? $item->product->image_path : storage_url($item->product->image_path)) : null;
+                        }
+                        $itemName = $item->display_name;
+                    @endphp
                     <div class="cart-item" data-item-id="{{ $item->id }}">
-                        @if($item->product->image_path)
-                            <img src="{{ str_starts_with($item->product->image_path, 'http') ? $item->product->image_path : asset('storage/' . $item->product->image_path) }}"
-                                 alt="{{ $item->product->name }}"
-                                 class="cart-item-image">
+                        @if($itemImage)
+                            <img src="{{ $itemImage }}" alt="{{ $itemName }}" class="cart-item-image">
                         @else
                             <div class="cart-item-image d-flex align-items-center justify-content-center" style="background: var(--color-bg);">
                                 <i data-lucide="image" style="width: 32px; opacity: 0.3;"></i>
@@ -303,7 +311,7 @@
                         @endif
 
                         <div class="cart-item-content">
-                            <div class="cart-item-name">{{ $item->product->name }}</div>
+                            <div class="cart-item-name">{{ $itemName }}</div>
                             <div class="cart-item-price">${{ number_format($item->price, 0, ',', '.') }} c/u</div>
                         </div>
 

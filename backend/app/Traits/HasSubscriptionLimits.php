@@ -24,83 +24,59 @@ trait HasSubscriptionLimits
     }
 
     /**
-     * Check if company has an active subscription.
+     * Check if company has an active subscription. (Sin planes: siempre true)
      */
     public function hasActiveSubscription(): bool
     {
-        return $this->subscription && $this->subscription->isActive();
+        return true;
     }
 
     /**
-     * Check if company is on FREE plan.
+     * Check if company is on FREE plan. (Sin planes: siempre false = todo desbloqueado)
      */
     public function isOnFreePlan(): bool
     {
-        if (!$this->plan) {
-            return true; // Default to free if no plan assigned
-        }
-
-        return $this->plan->slug === 'free';
+        return false;
     }
 
     /**
-     * Check if company is on PREMIUM plan.
+     * Check if company is on PREMIUM plan. (Sin planes: siempre true)
      */
     public function isOnPremiumPlan(): bool
     {
-        if (!$this->plan) {
-            return false;
-        }
-
-        return $this->plan->slug === 'premium' && $this->hasActiveSubscription();
+        return true;
     }
 
     /**
-     * Check if company has a specific feature.
+     * Check if company has a specific feature. (Sin planes: siempre true)
      */
     public function hasFeature(string $feature): bool
     {
-        if (!$this->plan) {
-            return false;
-        }
-
-        return $this->plan->hasFeature($feature);
+        return true;
     }
 
     /**
-     * Get restaurant limit for current plan.
+     * Get restaurant limit. (Sin planes: ilimitado = null)
      */
     public function getRestaurantLimit(): ?int
     {
-        if (!$this->plan) {
-            return 1; // Default to free plan limit
-        }
-
-        return $this->plan->getLimit('restaurants');
+        return null;
     }
 
     /**
-     * Get user limit for current plan.
+     * Get user limit. (Sin planes: ilimitado = null)
      */
     public function getUserLimit(): ?int
     {
-        if (!$this->plan) {
-            return 1; // Default to free plan limit
-        }
-
-        return $this->plan->getLimit('users');
+        return null;
     }
 
     /**
-     * Get QR code limit for current plan.
+     * Get QR code limit. (Sin planes: ilimitado = null)
      */
     public function getQrCodeLimit(): ?int
     {
-        if (!$this->plan) {
-            return 2; // Default to free plan limit
-        }
-
-        return $this->plan->getLimit('qr_codes');
+        return null;
     }
 
     /**

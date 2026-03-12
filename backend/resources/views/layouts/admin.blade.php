@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <script>window.APP_STORAGE_BASE = "{{ url('_storage') }}";</script>
 
     <title>@yield('title', 'Sushi Burger Experience Admin')</title>
 
@@ -240,7 +241,6 @@
                 $user = Auth::user();
                 $company = $user->company;
                 $hasEcommerce = $company && $company->hasEcommerce();
-                $isFreePlan = $company && $company->isOnFreePlan();
                 $hasRestaurants = $company && $company->restaurants()->count() > 0;
             @endphp
 
@@ -253,10 +253,12 @@
                 <i data-lucide="credit-card"></i>
                 <span>MercadoPago</span>
             </a>
+            @if($company && $company->hasBankTransferEnabled())
             <a href="{{ route('admin.bank-accounts') }}" class="nav-item-cartify {{ request()->routeIs('admin.bank-accounts') ? 'active' : '' }}">
                 <i data-lucide="landmark"></i>
                 <span>Cuentas Bancarias</span>
             </a>
+            @endif
             @endif
             <a href="{{ route('admin.qrs') }}" class="nav-item-cartify {{ request()->routeIs('admin.qrs') ? 'active' : '' }}">
                 <i data-lucide="qr-code"></i>
@@ -271,13 +273,7 @@
                 <span>Configuración</span>
             </a>
 
-            @if($isFreePlan)
-            <div class="nav-item-cartify disabled-premium" style="opacity: 0.5; cursor: not-allowed; position: relative;" title="Exclusivo Plan Full">
-                <i data-lucide="palette"></i>
-                <span>Personalizar</span>
-                <i data-lucide="sparkles" class="premium-icon" style="width: 14px; height: 14px; margin-left: auto; color: var(--color-primary-light);" title="Exclusivo Plan Full"></i>
-            </div>
-            @elseif(!$hasRestaurants)
+            @if(!$hasRestaurants)
             <div class="nav-item-cartify disabled-no-restaurant" style="opacity: 0.5; cursor: not-allowed; position: relative;" title="Debes crear tu primer restaurant">
                 <i data-lucide="palette"></i>
                 <span>Personalizar</span>
@@ -301,12 +297,6 @@
         </nav>
 
         <div class="p-3 border-top" style="border-color: var(--color-border) !important;">
-            <!--
-            <a href="{{ route('admin.subscription') }}" class="nav-item-cartify mb-2 {{ request()->routeIs('admin.subscription') ? 'active' : '' }}">
-                <i data-lucide="sparkles"></i>
-                <span>Mejorar Plan</span>
-            </a>
-            -->
             <a href="https://wa.me/59899807750" target="_blank" class="nav-item-cartify mb-2">
                 <i data-lucide="message-circle"></i>
                 <span>Soporte</span>
@@ -323,128 +313,6 @@
 
     <!-- Main Content -->
     <div class="flex-grow-1 d-flex flex-column main-wrapper">
-        @php
-            $user = Auth::user();
-            $company = $user->company;
-            $isFreePlan = $company && $company->isOnFreePlan();
-
-            // Calcular límites y estados
-            $subscriptionAlert = null;
-            if ($isFreePlan && $company) {
-                $restaurantLimit = $company->getRestaurantLimit();
-                $restaurantCount = $company->getRestaurantsCount();
-                $userLimit = $company->getUserLimit();
-                $userCount = $company->getUsersCount();
-                $qrLimit = $company->getQrCodeLimit();
-                $qrCount = $company->getTotalQrCodesCount();
-
-                // Detectar si está en el límite o cerca (>= 80%)
-                $threshold = 0.8; // 80%
-
-                $alerts = [];
-
-                // Restaurantes
-                if ($restaurantLimit !== null) {
-                    $percentage = $restaurantCount / $restaurantLimit;
-                    if ($restaurantCount >= $restaurantLimit) {
-                        $alerts[] = [
-                            'type' => 'restaurants',
-                            'status' => 'limit_reached',
-                            'current' => $restaurantCount,
-                            'limit' => $restaurantLimit,
-                            'message' => "Has alcanzado el límite de restaurantes ({$restaurantCount}/{$restaurantLimit})"
-                        ];
-                    } elseif ($percentage >= $threshold) {
-                        $remaining = $restaurantLimit - $restaurantCount;
-                        $alerts[] = [
-                            'type' => 'restaurants',
-                            'status' => 'near_limit',
-                            'current' => $restaurantCount,
-                            'limit' => $restaurantLimit,
-                            'remaining' => $remaining,
-                            'message' => "Estás cerca del límite de restaurantes ({$restaurantCount}/{$restaurantLimit}, {$remaining} restantes)"
-                        ];
-                    }
-                }
-
-                // Usuarios
-                if ($userLimit !== null) {
-                    $percentage = $userCount / $userLimit;
-                    if ($userCount >= $userLimit) {
-                        $alerts[] = [
-                            'type' => 'users',
-                            'status' => 'limit_reached',
-                            'current' => $userCount,
-                            'limit' => $userLimit,
-                            'message' => "Has alcanzado el límite de usuarios ({$userCount}/{$userLimit})"
-                        ];
-                    } elseif ($percentage >= $threshold) {
-                        $remaining = $userLimit - $userCount;
-                        $alerts[] = [
-                            'type' => 'users',
-                            'status' => 'near_limit',
-                            'current' => $userCount,
-                            'limit' => $userLimit,
-                            'remaining' => $remaining,
-                            'message' => "Estás cerca del límite de usuarios ({$userCount}/{$userLimit}, {$remaining} restantes)"
-                        ];
-                    }
-                }
-
-                // QR Codes
-                if ($qrLimit !== null) {
-                    $percentage = $qrCount / $qrLimit;
-                    if ($qrCount >= $qrLimit) {
-                        $alerts[] = [
-                            'type' => 'qr_codes',
-                            'status' => 'limit_reached',
-                            'current' => $qrCount,
-                            'limit' => $qrLimit,
-                            'message' => "Has alcanzado el límite de códigos QR ({$qrCount}/{$qrLimit})"
-                        ];
-                    } elseif ($percentage >= $threshold) {
-                        $remaining = $qrLimit - $qrCount;
-                        $alerts[] = [
-                            'type' => 'qr_codes',
-                            'status' => 'near_limit',
-                            'current' => $qrCount,
-                            'limit' => $qrLimit,
-                            'remaining' => $remaining,
-                            'message' => "Estás cerca del límite de códigos QR ({$qrCount}/{$qrLimit}, {$remaining} restantes)"
-                        ];
-                    }
-                }
-
-                // Priorizar alertas: límite alcanzado primero
-                usort($alerts, function($a, $b) {
-                    if ($a['status'] === 'limit_reached' && $b['status'] !== 'limit_reached') {
-                        return -1;
-                    }
-                    if ($a['status'] !== 'limit_reached' && $b['status'] === 'limit_reached') {
-                        return 1;
-                    }
-                    return 0;
-                });
-
-                $subscriptionAlert = !empty($alerts) ? $alerts[0] : null;
-            }
-        @endphp
-
-        @if($subscriptionAlert)
-        <div class="subscription-limit-alert d-flex align-items-center justify-content-between px-4 py-3" style="background: linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(239, 68, 68, 0.15) 100%); border-bottom: 1px solid rgba(251, 191, 36, 0.3);">
-            <div class="d-flex align-items-center gap-3">
-                <i data-lucide="{{ $subscriptionAlert['status'] === 'limit_reached' ? 'alert-triangle' : 'info' }}" style="width: 20px; height: 20px; color: {{ $subscriptionAlert['status'] === 'limit_reached' ? '#ef4444' : '#fbbf24' }};"></i>
-                <div>
-                    <strong style="color: white; font-size: 0.9rem;">{{ $subscriptionAlert['message'] }}</strong>
-                    <p class="mb-0 small text-muted" style="font-size: 0.8rem;">Actualiza a Plan Full para obtener acceso ilimitado</p>
-                </div>
-            </div>
-            <a href="{{ route('admin.subscription') }}" class="btn btn-sm" style="background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); border: none; color: white; font-weight: 600; padding: 0.5rem 1.5rem; border-radius: 9999px; white-space: nowrap;">
-                Mejorar Plan
-            </a>
-        </div>
-        @endif
-
         <header class="sbe-navbar cartify-navbar d-flex align-items-center justify-content-between px-4">
             <!-- Botón hamburguesa para mobile -->
             <button class="mobile-menu-toggle" id="mobileMenuToggle" type="button" aria-label="Toggle menu">
@@ -751,67 +619,6 @@
             @endif
         });
 
-        // Interceptar errores de límite de suscripción en todas las peticiones fetch
-        const originalFetch = window.fetch;
-        window.fetch = async function(...args) {
-            const response = await originalFetch(...args);
-
-            // Clonar la respuesta para poder leerla múltiples veces
-            const clonedResponse = response.clone();
-
-            // Si es un error 403, verificar si es por límite de suscripción
-            if (response.status === 403) {
-                try {
-                    const data = await clonedResponse.json();
-                    if (data.error_code === 'SUBSCRIPTION_LIMIT_EXCEEDED') {
-                        showSubscriptionLimitModal(data);
-                        return response; // Retornar la respuesta original
-                    }
-                } catch (e) {
-                    // Si no es JSON, continuar normalmente
-                }
-            }
-
-            return response;
-        };
-
-        function showSubscriptionLimitModal(data) {
-            const limitTypeNames = {
-                'restaurants': 'Restaurantes',
-                'users': 'Usuarios',
-                'qr_codes': 'Códigos QR'
-            };
-
-            const limitTypeName = limitTypeNames[data.limit_type] || data.limit_type;
-
-            window.CartifySwal.fire({
-                icon: 'warning',
-                title: 'Límite de Plan Alcanzado',
-                html: `
-                    <div class="text-start px-2">
-                        <p class="mb-4 fs-5">Has alcanzado el límite de <strong>${limitTypeName}</strong> permitidos en tu plan actual.</p>
-                        <p class="mb-0 fs-6 text-muted">Por favor, actualiza tu plan para poder crear más recursos.</p>
-                    </div>
-                `,
-                showCancelButton: true,
-                confirmButtonText: 'Ver Planes',
-                cancelButtonText: 'Cancelar',
-                confirmButtonColor: '#7c3aed',
-                cancelButtonColor: '#6c757d',
-                customClass: {
-                    popup: 'swal2-popup-large',
-                    title: 'swal2-title-large',
-                    htmlContainer: 'swal2-html-large'
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    window.location.href = data.upgrade_url || '{{ route("admin.subscription") }}';
-                }
-            });
-        }
-
-        // Exponer la función globalmente para uso manual si es necesario
-        window.showSubscriptionLimitModal = showSubscriptionLimitModal;
     </script>
     @yield('scripts')
 </body>

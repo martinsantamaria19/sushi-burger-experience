@@ -286,6 +286,7 @@
                         </label>
                     </div>
 
+                    @if($bankTransferEnabled ?? true)
                     <div class="payment-option" onclick="selectPayment('bank_transfer')">
                         <input type="radio" name="payment_method" value="bank_transfer" id="transfer"
                                {{ old('payment_method') === 'bank_transfer' ? 'checked' : '' }}>
@@ -297,6 +298,7 @@
                             </div>
                         </label>
                     </div>
+                    @endif
                 </div>
             </div>
 
@@ -308,9 +310,12 @@
                 </div>
 
                 @foreach($cartItems as $item)
+                    @php
+                        $checkoutItemName = $item->display_name;
+                    @endphp
                     <div class="order-item">
                         <div>
-                            <div class="order-item-name">{{ $item->product->name }}</div>
+                            <div class="order-item-name">{{ $checkoutItemName }}</div>
                             <div class="order-item-quantity">Cantidad: {{ $item->quantity }}</div>
                         </div>
                         <div style="font-weight: 600;">

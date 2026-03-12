@@ -126,30 +126,12 @@
 @endif
 
 <!-- Charts Section -->
-@php
-    $user = Auth::user();
-    $company = $user->company;
-    $isFreePlan = $company && $company->isOnFreePlan();
-@endphp
-
 @if($stats['total_scans'] > 0)
 <div class="row g-4 mb-4">
     <!-- Scans by Day Chart -->
     <div class="col-12 col-lg-8">
         <div class="glass-card p-4 position-relative">
-            @if($isFreePlan)
-            <div class="premium-lock-overlay">
-                <div class="premium-lock-content">
-                    <i data-lucide="lock" style="width: 48px; height: 48px; color: var(--color-primary-light); margin-bottom: 1rem;"></i>
-                    <h4 class="h5 fw-bold mb-2">Desbloquear con Plan Full</h4>
-                    <p class="text-muted small mb-3">Accede a gráficos detallados y análisis avanzados con nuestro plan premium.</p>
-                    <a href="{{ route('admin.subscription') }}" class="btn btn-cartify-primary">
-                        Ver Planes
-                    </a>
-                </div>
-            </div>
-            @endif
-            <div class="d-flex justify-content-between align-items-center mb-4 chart-header" style="{{ $isFreePlan ? 'filter: blur(4px); pointer-events: none;' : '' }}">
+            <div class="d-flex justify-content-between align-items-center mb-4 chart-header">
                 <div>
                     <h4 class="h5 fw-bold mb-1">Escaneos por Día</h4>
                     <p class="text-muted small mb-0">Actividad de escaneos en los últimos días</p>
@@ -159,7 +141,7 @@
                     <button type="button" class="btn btn-sm btn-cartify-secondary" data-period="30days">30 días</button>
                 </div>
             </div>
-            <div class="chart-container" style="height: 300px; position: relative; {{ $isFreePlan ? 'filter: blur(4px); pointer-events: none;' : '' }}">
+            <div class="chart-container" style="height: 300px; position: relative;">
                 <canvas id="scansByDayChart"></canvas>
             </div>
         </div>
@@ -168,20 +150,8 @@
     <!-- Top QR Codes -->
     <div class="col-12 col-lg-4">
         <div class="glass-card p-4 position-relative">
-            @if($isFreePlan)
-            <div class="premium-lock-overlay">
-                <div class="premium-lock-content">
-                    <i data-lucide="lock" style="width: 48px; height: 48px; color: var(--color-primary-light); margin-bottom: 1rem;"></i>
-                    <h4 class="h5 fw-bold mb-2">Desbloquear con Plan Full</h4>
-                    <p class="text-muted small mb-3">Accede a gráficos detallados y análisis avanzados con nuestro plan premium.</p>
-                    <a href="{{ route('admin.subscription') }}" class="btn btn-cartify-primary">
-                        Ver Planes
-                    </a>
-                </div>
-            </div>
-            @endif
-            <h4 class="h5 fw-bold mb-4" style="{{ $isFreePlan ? 'filter: blur(4px); pointer-events: none;' : '' }}">QR's Más Escaneados</h4>
-            <div class="chart-container" style="height: 300px; position: relative; {{ $isFreePlan ? 'filter: blur(4px); pointer-events: none;' : '' }}">
+            <h4 class="h5 fw-bold mb-4">QR's Más Escaneados</h4>
+            <div class="chart-container" style="height: 300px; position: relative;">
                 <canvas id="topQrsChart"></canvas>
             </div>
         </div>
@@ -192,25 +162,13 @@
 <div class="row g-4 mb-4">
     <div class="col-12">
         <div class="glass-card p-4 position-relative">
-            @if($isFreePlan)
-            <div class="premium-lock-overlay">
-                <div class="premium-lock-content">
-                    <i data-lucide="lock" style="width: 48px; height: 48px; color: var(--color-primary-light); margin-bottom: 1rem;"></i>
-                    <h4 class="h5 fw-bold mb-2">Desbloquear con Plan Full</h4>
-                    <p class="text-muted small mb-3">Accede a gráficos detallados y análisis avanzados con nuestro plan premium.</p>
-                    <a href="{{ route('admin.subscription') }}" class="btn btn-cartify-primary">
-                        Ver Planes
-                    </a>
-                </div>
-            </div>
-            @endif
-            <div class="d-flex justify-content-between align-items-center mb-4" style="{{ $isFreePlan ? 'filter: blur(4px); pointer-events: none;' : '' }}">
+            <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
                     <h4 class="h5 fw-bold mb-1">Escaneos por Hora</h4>
                     <p class="text-muted small mb-0">Actividad de las últimas 24 horas</p>
                 </div>
             </div>
-            <div class="chart-container" style="height: 250px; position: relative; {{ $isFreePlan ? 'filter: blur(4px); pointer-events: none;' : '' }}">
+            <div class="chart-container" style="height: 250px; position: relative;">
                 <canvas id="scansByHourChart"></canvas>
             </div>
         </div>

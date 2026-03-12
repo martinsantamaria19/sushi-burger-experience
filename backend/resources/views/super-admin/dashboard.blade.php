@@ -6,7 +6,7 @@
 @section('content')
 <!-- Stats Cards -->
 <div class="row g-4 mb-4">
-    <div class="col-md-3">
+    <div class="col-md-6">
         <div class="glass-card p-4 h-100">
             <h6 class="text-muted mb-2 text-uppercase small ls-1">Usuarios Totales</h6>
             <div class="d-flex align-items-center justify-content-between">
@@ -20,35 +20,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="glass-card p-4 h-100">
-            <h6 class="text-muted mb-2 text-uppercase small ls-1">MRR Estimado</h6>
-            <div class="d-flex align-items-center justify-content-between">
-                <h2 class="mb-0 fw-bold">${{ number_format($monthlyRevenue, 2) }}</h2>
-                <div class="p-2 rounded-circle bg-success-subtle text-success">
-                    <i data-lucide="dollar-sign" style="width: 20px; height: 20px;"></i>
-                </div>
-            </div>
-             <div class="mt-3 small text-muted">
-                Ingresos recurrentes mensuales
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="glass-card p-4 h-100">
-            <h6 class="text-muted mb-2 text-uppercase small ls-1">Suscripciones Activas</h6>
-            <div class="d-flex align-items-center justify-content-between">
-                <h2 class="mb-0 fw-bold">{{ $planDistribution->sum('count') }}</h2>
-                <div class="p-2 rounded-circle bg-warning-subtle text-warning">
-                    <i data-lucide="crown" style="width: 20px; height: 20px;"></i>
-                </div>
-            </div>
-             <div class="mt-3 small text-muted">
-                Usuarios Premium Activos
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
+    <div class="col-md-6">
         <div class="glass-card p-4 h-100">
             <h6 class="text-muted mb-2 text-uppercase small ls-1">Cupones</h6>
             <div class="d-flex align-items-center justify-content-between">
@@ -66,19 +38,11 @@
 
 <!-- Charts Section -->
 <div class="row g-4 mb-4">
-    <div class="col-md-8">
+    <div class="col-12">
         <div class="glass-card p-4 h-100">
             <h5 class="fw-bold mb-4">Crecimiento de Usuarios</h5>
             <div style="height: 300px;">
                 <canvas id="usersChart"></canvas>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="glass-card p-4 h-100">
-            <h5 class="fw-bold mb-4">Distribución de Planes</h5>
-            <div style="height: 300px; position: relative;">
-                <canvas id="plansChart"></canvas>
             </div>
         </div>
     </div>
@@ -92,7 +56,6 @@
             <thead>
                 <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
                     <th class="py-3 text-muted fw-medium text-uppercase small" style="background: transparent;">Usuario</th>
-                    <th class="py-3 text-muted fw-medium text-uppercase small" style="background: transparent;">Plan</th>
                     <th class="py-3 text-muted fw-medium text-uppercase small" style="background: transparent;">Fecha Registro</th>
                 </tr>
             </thead>
@@ -109,15 +72,6 @@
                                 <span class="small text-muted">{{ $user->email }}</span>
                             </div>
                         </div>
-                    </td>
-                    <td class="py-3" style="background: transparent;">
-                         @if($user->company && $user->company->currentPlan)
-                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3">
-                                {{ $user->company->currentPlan->name }}
-                            </span>
-                        @else
-                            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-3">Free</span>
-                        @endif
                     </td>
                     <td class="py-3 text-gray-300" style="background: transparent;">
                         {{ $user->created_at->diffForHumans() }}
@@ -195,41 +149,6 @@
             }
         });
 
-        // Plans Distribution Chart
-        const plansCtx = document.getElementById('plansChart').getContext('2d');
-        const planData = @json($planDistribution);
-        
-        new Chart(plansCtx, {
-            type: 'doughnut',
-            data: {
-                labels: planData.map(d => d.name),
-                datasets: [{
-                    data: planData.map(d => d.count),
-                    backgroundColor: planData.map(d => d.color),
-                    borderWidth: 0,
-                    hoverOffset: 4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                cutout: '70%',
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            color: '#94a3b8',
-                            padding: 20,
-                            usePointStyle: true
-                        }
-                    }
-                },
-                scales: {
-                    x: { display: false },
-                    y: { display: false }
-                }
-            }
-        });
     });
 </script>
 @endsection

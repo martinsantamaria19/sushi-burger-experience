@@ -6,6 +6,7 @@ use App\Http\Controllers\RestaurantController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProductVariantController;
 use App\Http\Controllers\PublicMenuController;
 use App\Http\Controllers\QrCodeController;
 use App\Http\Controllers\QrRedirectController;
@@ -18,6 +19,8 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\MercadoPagoAccountController;
 use App\Http\Controllers\BankAccountController;
 use App\Http\Controllers\DeliveryEstimateController;
+use App\Http\Controllers\SubscriptionController;
+use App\Http\Controllers\StorageController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Models\Company;
@@ -30,6 +33,10 @@ Route::get('/', function () {
     }
     abort(404, 'No hay compañía configurada');
 });
+
+// Servir archivos de storage (imágenes, logos). Usamos _storage para que el servidor
+// (p. ej. php artisan serve) no intente servir public/storage y devuelva 403; así la petición llega a Laravel.
+Route::get('_storage/{path}', StorageController::class)->where('path', '.+')->name('storage.serve');
 
 // Auth Routes
 Route::middleware('guest')->group(function () {
@@ -71,7 +78,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/analytics', [DashboardController::class, 'analytics'])->name('admin.analytics');
         Route::get('/settings', [DashboardController::class, 'settings'])->name('admin.settings');
         Route::get('/personalize', [DashboardController::class, 'personalize'])->name('admin.personalize');
-        Route::get('/subscription', [SubscriptionController::class, 'index'])->name('admin.subscription');
+        Route::get('/subscription', fn () => redirect()->route('admin.dashboard'))->name('admin.subscription');
         Route::get('/resource-management', [ResourceManagementController::class, 'index'])->name('admin.resource-management');
         Route::post('/resource-management/update', [ResourceManagementController::class, 'updateResources'])->name('admin.resource-management.update');
 
@@ -106,6 +113,10 @@ Route::middleware('auth')->group(function () {
         Route::apiResource('menus', MenuController::class);
         Route::apiResource('categories', CategoryController::class);
         Route::apiResource('products', ProductController::class);
+        Route::get('products/{product}/variants', [ProductVariantController::class, 'index']);
+        Route::post('products/{product}/variants', [ProductVariantController::class, 'store']);
+        Route::put('product-variants/{productVariant}', [ProductVariantController::class, 'update']);
+        Route::delete('product-variants/{productVariant}', [ProductVariantController::class, 'destroy']);
         Route::apiResource('qrcodes', QrCodeController::class);
         Route::apiResource('users', \App\Http\Controllers\UserController::class);
         Route::get('/bank-accounts', [BankAccountController::class, 'index'])->name('bank-accounts.index');
@@ -174,6 +185,9 @@ Route::prefix('payments')->name('payments.')->group(function () {
     Route::get('/bank-accounts', [PaymentController::class, 'getBankAccounts'])->name('bank-accounts');
 });
 
+// Vista individual de producto (antes del catch-all del menú)
+Route::get('/{restaurant_slug}/product/{product}', [PublicMenuController::class, 'showProduct'])->name('public.product');
+
 // Case-insensitive public menu route (debe ir al final para no interferir con otras rutas)
 Route::get('/{slug}', [PublicMenuController::class, 'show'])->name('public.menu');
 
@@ -184,9 +198,6 @@ Route::get('/scan/{slug}', [QrRedirectController::class, 'handle'])->name('qr.sc
 Route::middleware(['auth', 'super_admin'])->prefix('super-admin')->name('super_admin.')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\SuperAdminController::class, 'dashboard'])->name('dashboard');
     Route::get('/users', [\App\Http\Controllers\SuperAdminController::class, 'users'])->name('users');
-    Route::post('/users/{user}/assign-plan', [\App\Http\Controllers\SuperAdminController::class, 'assignPlan'])->name('users.assign_plan');
-    Route::get('/plans', [\App\Http\Controllers\SuperAdminController::class, 'plans'])->name('plans');
-    Route::put('/plans/{plan}', [\App\Http\Controllers\SuperAdminController::class, 'updatePlan'])->name('plans.update');
     Route::get('/coupons', [\App\Http\Controllers\SuperAdminController::class, 'coupons'])->name('coupons');
     Route::post('/coupons', [\App\Http\Controllers\SuperAdminController::class, 'createCoupon'])->name('coupons.create');
     Route::patch('/coupons/{coupon}/toggle', [\App\Http\Controllers\SuperAdminController::class, 'toggleCoupon'])->name('coupons.toggle');

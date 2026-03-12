@@ -289,7 +289,7 @@
             @foreach($order->items as $item)
                 <div class="order-item">
                     <div>
-                        <strong>{{ $item->product_name }}</strong>
+                        <strong>{{ $item->display_name }}</strong>
                         <div style="color: var(--color-text-muted); font-size: 0.9rem;">Cantidad: {{ $item->quantity }}</div>
                     </div>
                     <div style="font-weight: 600;">

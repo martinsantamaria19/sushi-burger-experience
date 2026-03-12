@@ -488,15 +488,7 @@
                                 location.reload();
                             }, 100);
                         } else {
-                            // Handle subscription limit errors
-                            if (response.status === 403 && responseData.error_code === 'SUBSCRIPTION_LIMIT_EXCEEDED') {
-                                if (window.showSubscriptionLimitModal) {
-                                    window.showSubscriptionLimitModal(responseData);
-                                } else {
-                                    alert(responseData.message || 'Has alcanzado el límite de restaurantes permitidos en tu plan.');
-                                }
-                            } else {
-                                // Handle validation errors
+                            // Handle validation errors
                                 let errorMessage = 'Error al guardar';
                                 let slugError = null;
 
@@ -515,42 +507,43 @@
                                     }
                                     // Si hay otros errores además del slug, mostrarlos
                                     const otherErrors = Object.entries(responseData.errors)
-                                        .filter(([key]) => key !== 'slug')
-                                        .map(([key, value]) => Array.isArray(value) ? value.join(', ') : value);
-                                    if (otherErrors.length > 0) {
+                                        .filter(([k]) => k !== 'slug')
+                                        .map(([k, v]) => Array.isArray(v) ? v[0] : v);
+                                    if (otherErrors.length) {
                                         errorMessage = otherErrors.join('\n');
                                     }
-                                } else if (responseData.message) {
-                                    // Verificar si el mensaje es sobre el slug
-                                    const message = responseData.message.toLowerCase();
-                                    if (message.includes('slug') || message.includes('url friendly') || message.includes('ya está en uso')) {
-                                        slugError = responseData.message;
-                                    } else {
-                                        errorMessage = responseData.message;
-                                    }
                                 }
-
+                                if (slugError != null) {
+                                    errorMessage = slugError;
+                                }
+                                if (responseData.message) {
+                                    errorMessage = responseData.message;
+                                }
                                 // Mostrar error del slug debajo del campo
-                                if (slugError) {
+                                if (slugError != null) {
                                     showSlugError(slugError);
                                 }
-
-                                // Mostrar otros errores con alert solo si no hay error de slug o si hay otros errores
                                 if (!slugError || (responseData.errors && Object.keys(responseData.errors).length > 1)) {
                                     if (errorMessage !== 'Error al guardar' || !slugError) {
-                                        alert(errorMessage);
+                                        window.CartifySwal.fire({
+                                            icon: 'error',
+                                            title: 'Error',
+                                            text: errorMessage
+                                        });
                                     }
                                 }
                             }
                         }
-                    } catch (error) {
-                        console.error('Error:', error);
-                        alert('Error de conexión. Por favor, intenta nuevamente.');
+                    } catch (e) {
+                        console.error(e);
+                        window.CartifySwal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Error de conexión al guardar.'
+                        });
                     }
-
-                    return false;
                 });
-            }
+            });
 
             // Agregar listener al campo slug para limpiar error cuando se escribe
             const resSlug = document.getElementById('resSlug');

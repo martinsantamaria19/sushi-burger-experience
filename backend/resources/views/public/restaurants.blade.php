@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>{{ $company->name ?? 'Selecciona tu Local' }} - Menú Digital</title>
+    <title>{{ $company->name ?? 'Sushi Burger' }} - Pedir ahora</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -88,135 +88,148 @@
             background: rgba(var(--color-primary-rgb), 0.8);
         }
 
-        /* Hero Header */
-        .hero-header {
-            position: relative;
-            padding: 60px 20px 40px;
-            background: linear-gradient(to bottom, rgba(var(--color-primary-rgb), 0.15) 0%, transparent 100%);
-            text-align: center;
-            margin-bottom: 3rem;
+
+        .brand-text {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            color: var(--color-text);
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+            line-height: 1.15;
         }
 
-        .logo-container {
-            position: relative;
-            display: inline-block;
-            margin-bottom: 24px;
+        .brand-text .line1 { font-size: 0.75rem; opacity: 0.95; }
+        .brand-text .line2 { font-size: 1rem; }
+
+        .top-bar-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
         }
 
-        .company-logo {
-            width: 120px;
-            height: 120px;
-            border-radius: 24px;
-            object-fit: cover;
-            border: 3px solid rgba(var(--color-primary-rgb), 0.3);
-            box-shadow: 0 8px 32px rgba(var(--color-primary-rgb), 0.2);
-        }
-
-        .company-logo-placeholder {
-            width: 120px;
-            height: 120px;
-            border-radius: 24px;
-            background: rgba(var(--color-primary-rgb), 0.1);
+        .icon-cart-wrap {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #dc2626;
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 3px solid rgba(var(--color-primary-rgb), 0.3);
-            margin: 0 auto;
-        }
-
-        .company-name {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--color-text);
-            margin-bottom: 0.5rem;
-        }
-
-        .restaurants-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-            /* Padding adicional para evitar que el footer fijo tape contenido */
-            padding-bottom: max(100px, env(safe-area-inset-bottom, 0px) + 100px);
-        }
-
-        .restaurant-card {
-            background: var(--color-card-bg);
-            border: 1px solid var(--color-border);
-            border-radius: 20px;
-            padding: 2rem;
-            transition: all 0.3s ease;
+            color: #fff;
             text-decoration: none;
-            color: inherit;
+        }
+
+        .icon-menu {
+            color: var(--color-text);
+            padding: 0.5rem;
+        }
+
+        /* Hero fullscreen con fondo en mobile */
+        .hero-landing {
+            position: relative;
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            padding-bottom: max(80px, env(safe-area-inset-bottom, 0px) + 60px);
+        }
+
+        @media (max-width: 767.98px) {
+            .hero-landing {
+                background: var(--color-bg) url('{{ asset("assets/img/bg-sushiburger.webp") }}') no-repeat center bottom;
+                background-size: cover;
+            }
+            .hero-landing::before {
+                content: '';
+                position: absolute;
+                inset: 0;
+                background: linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 40%, rgba(0,0,0,0.3) 100%);
+                pointer-events: none;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .hero-landing {
+                background: linear-gradient(135deg, var(--color-bg) 0%, rgba(var(--color-primary-rgb), 0.08) 50%, var(--color-bg) 100%);
+            }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            padding-top: max(100px, env(safe-area-inset-top, 0px) + 60px);
+            padding-left: 1.5rem;
+            padding-right: 1.5rem;
+            padding-bottom: 2rem;
+            text-align: start;
+        }
+
+        @media (min-width: 768px) {
+            .hero-content {
+                padding-top: max(60px, env(safe-area-inset-top, 0px) + 60px);
+                padding-left: 2rem;
+                padding-right: 2rem;
+                padding-bottom: 3rem;
+                max-width: 720px;
+                margin: 0 auto;
+            }
+        }
+
+        .hero-title {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+            color: var(--color-text);
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+            line-height: 1.1;
+            margin-bottom: 2rem;
+        }
+
+        .hero-title .line-small {
+            font-size: clamp(0.9rem, 3vw, 1.1rem);
             display: block;
-            height: 100%;
-            position: relative;
-            overflow: hidden;
+            margin-bottom: 0.15em;
         }
 
-        .restaurant-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--color-primary) 0%, rgba(var(--color-primary-rgb), 0.5) 100%);
-            transform: scaleX(0);
-            transform-origin: left;
-            transition: transform 0.3s ease;
+        .hero-title .line-big {
+            font-size: clamp(2.5rem, 12vw, 4rem);
+            display: block;
+            letter-spacing: -0.02em;
         }
 
-        .restaurant-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 40px rgba(var(--color-primary-rgb), 0.2);
-            border-color: rgba(var(--color-primary-rgb), 0.5);
-            text-decoration: none;
-            color: inherit;
+        .hero-title .line-end {
+            font-size: clamp(0.9rem, 3vw, 1.1rem);
+            display: block;
+            margin-top: 0.1em;
         }
 
-        .restaurant-card:hover::before {
-            transform: scaleX(1);
-        }
-
-        .restaurant-logo {
-            width: 80px;
-            height: 80px;
-            border-radius: 16px;
-            object-fit: cover;
-            margin-bottom: 1.5rem;
-            border: 2px solid var(--color-border);
-        }
-
-        .restaurant-logo-placeholder {
-            width: 80px;
-            height: 80px;
-            border-radius: 16px;
-            background: rgba(var(--color-primary-rgb), 0.1);
-            display: flex;
+        .btn-pedir-ahora {
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 1.5rem;
-            border: 2px solid var(--color-border);
-        }
-
-        .restaurant-name {
-            font-size: 1.5rem;
+            padding: 1rem 2.5rem;
+            font-family: 'Outfit', sans-serif;
             font-weight: 700;
-            color: var(--color-text);
-            margin-bottom: 0.75rem;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #fff;
+            background: #dc2626;
+            border: none;
+            border-radius: 9999px;
+            text-decoration: none;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 4px 20px rgba(220, 38, 38, 0.4);
         }
 
-        .restaurant-address {
-            color: var(--color-text-muted);
-            font-size: 0.95rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .restaurant-address i {
-            width: 16px;
-            height: 16px;
+        .btn-pedir-ahora:hover {
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(220, 38, 38, 0.5);
         }
 
         .footer-brand {
@@ -254,53 +267,32 @@
 </head>
 <body>
 
-<!-- Hero Header -->
-<header class="hero-header">
-    <div class="container text-center">
-        <div class="logo-container">
-            @if($logoPath)
-                <img src="{{ $logoPath }}" alt="{{ $company->name }}" class="company-logo">
-            @else
-                <div class="company-logo-placeholder">
-                    <i data-lucide="building-2" style="width: 48px; color: var(--color-primary);"></i>
-                </div>
-            @endif
-        </div>
-        <h1 class="company-name">{{ $company->name ?? 'Nuestros Locales' }}</h1>
-        <p style="color: var(--color-text-muted);">Selecciona un local para ver su menú</p>
-    </div>
-</header>
+@php
+    $companyName = $company->name ?? 'Sushi Burger';
+    $nameParts = preg_split('/\s+/', $companyName, 2);
+    $brandLine1 = $nameParts[0] ?? $companyName;
+    $brandLine2 = $nameParts[1] ?? '';
+    $firstRestaurant = $restaurants->first();
+@endphp
 
-<!-- Restaurants Grid -->
-<div class="restaurants-container">
-    <div class="row g-4">
-        @foreach($restaurants as $restaurant)
-        <div class="col-12 col-md-6 col-lg-4">
-            <a href="{{ route('public.menu', $restaurant->slug) }}" class="restaurant-card">
-                <div class="d-flex align-items-start gap-3">
-                    @if($restaurant->logo_path)
-                        <img src="{{ str_starts_with($restaurant->logo_path, 'http') ? $restaurant->logo_path : asset('storage/' . $restaurant->logo_path) }}" alt="{{ $restaurant->name }}" class="restaurant-logo">
-                    @else
-                        <div class="restaurant-logo-placeholder">
-                            <i data-lucide="utensils-crossed" style="width: 32px; color: var(--color-primary);"></i>
-                        </div>
-                    @endif
-                    <div class="flex-grow-1">
-                        <h3 class="restaurant-name">{{ $restaurant->name }}</h3>
-                        @if($restaurant->address)
-                        <div class="restaurant-address">
-                            <i data-lucide="map-pin"></i>
-                            <span>{{ $restaurant->address }}</span>
-                        </div>
-                        @endif
-                    </div>
-                </div>
-            </a>
-        </div>
-        @endforeach
+<!-- Hero landing -->
+<div class="hero-landing">
+    <div class="hero-content">
+        <h1 class="hero-title">
+            <span class="line-small">La primera</span>
+            <span class="line-big">Sushi burger</span>
+            <span class="line-end">de Uruguay</span>
+        </h1>
+        @if($firstRestaurant)
+            <a href="{{ route('public.menu', $firstRestaurant->slug) }}" class="btn-pedir-ahora">Pedir ahora</a>
+        @endif
     </div>
 </div>
 
+<!-- Footer -->
+<footer class="footer-brand">
+    <span>Powered by <strong><a href="https://mvdstudio.com.uy" target="_blank" rel="noopener noreferrer" class="cartify-link text-decoration-none" style="color: inherit;">MVD Studio</a></strong></span>
+</footer>
 
 <script>
     lucide.createIcons();
