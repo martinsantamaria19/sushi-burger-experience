@@ -190,21 +190,27 @@
         }
 
         .hero-title .line-small {
-            font-size: clamp(0.9rem, 3vw, 1.1rem);
+            font-size: 2.5rem!important;
             display: block;
             margin-bottom: 0.15em;
+            margin-top: 0px!important;
+            font-family: 'Open Sans', sans-serif;
+            font-weight: 300!important;
         }
 
         .hero-title .line-big {
-            font-size: clamp(2.5rem, 12vw, 4rem);
+            font-size: 5rem!important;
             display: block;
             letter-spacing: -0.02em;
+            line-height: 70px!important;
         }
 
         .hero-title .line-end {
-            font-size: clamp(0.9rem, 3vw, 1.1rem);
+            font-size: 2.5rem!important;
             display: block;
             margin-top: 0.1em;
+            font-family: 'Open Sans', sans-serif;
+            font-weight: 300!important;
         }
 
         .btn-pedir-ahora {
@@ -263,6 +269,15 @@
         .cartify-link:hover {
             color: #ffffff !important;
         }
+
+        .line1 {
+            font-size: 1.1rem!important;
+        }
+
+        .line2 {
+            font-size: 1.8rem!important;
+        }
+
     </style>
 </head>
 <body>
@@ -278,13 +293,21 @@
 <!-- Hero landing -->
 <div class="hero-landing">
     <div class="hero-content">
+        <div class="d-flex align-items-center justify-content-between mb-1">
+            <div class="brand-text">
+                <div class="line1">SUSHIBURGER</div>
+                <div class="line2">EXPERIENCE</div>
+            </div>
+        </div>
+
         <h1 class="hero-title">
-            <span class="line-small">La primera</span>
-            <span class="line-big">Sushi burger</span>
-            <span class="line-end">de Uruguay</span>
+            <span class="line-small">LA PRIMERA</span>
+            <span class="line-big">SUSHI BURGER</span>
+            <span class="line-end">DE URUGUAY</span>
         </h1>
+
         @if($firstRestaurant)
-            <a href="{{ route('public.menu', $firstRestaurant->slug) }}" class="btn-pedir-ahora">Pedir ahora</a>
+            <a href="{{ route('public.menu', $firstRestaurant->slug) }}" class="btn-pedir-ahora">PEDIR AHORA</a>
         @endif
     </div>
 </div>
