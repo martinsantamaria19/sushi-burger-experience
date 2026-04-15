@@ -36,6 +36,25 @@
                     </div>
                 </div>
 
+                <h3 class="h5 fw-bold mb-4 pb-3 mt-5 pt-4 border-top" style="border-color: var(--color-border) !important;">Modo desarrollo</h3>
+                <div class="row g-4 align-items-center mb-4">
+                    <div class="col-md-4">
+                        <label class="form-label mb-md-0">Sitio en construcción</label>
+                        <div class="form-text small text-muted">
+                            Cuando está activo, los clientes ven una página de "sitio en construcción" y sólo los administradores logueados pueden acceder al menú y al carrito.
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="form-check form-switch">
+                            @php
+                                $devModeEnabled = $company?->isInDevelopmentMode() ?? false;
+                            @endphp
+                            <input class="form-check-input" type="checkbox" name="development_mode" id="developmentMode" value="1" {{ $devModeEnabled ? 'checked' : '' }}>
+                            <label class="form-check-label" for="developmentMode">Activar modo desarrollo</label>
+                        </div>
+                    </div>
+                </div>
+
                 <h3 class="h5 fw-bold mb-4 pb-3 mt-5 pt-4 border-top" style="border-color: var(--color-border) !important;">Métodos de pago</h3>
                 <div class="row g-4 align-items-center mb-4">
                     <div class="col-md-4">
@@ -79,6 +98,7 @@
                 name: document.getElementById('companyName').value,
                 currency: document.getElementById('companyCurrency').value,
                 bank_transfer_enabled: document.getElementById('bankTransferEnabled').checked ? 1 : 0,
+                development_mode: document.getElementById('developmentMode').checked ? 1 : 0,
             };
 
             // Disable button and show loading state

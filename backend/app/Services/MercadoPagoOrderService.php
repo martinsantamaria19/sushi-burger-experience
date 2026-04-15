@@ -254,6 +254,19 @@ class MercadoPagoOrderService
         $paymentType = $cardFormData['paymentType'] ?? $cardFormData['selectedPaymentMethod'] ?? null;
         $formData = $cardFormData['formData'] ?? $cardFormData;
 
+        // Wallet purchase (Cuenta MercadoPago) is processed by MP directly through the preference.
+        // We must NOT call /v1/payments for it — MP handles the charge and notifies via webhook.
+        if ($paymentType === 'wallet_purchase') {
+            Log::info('MercadoPago Brick wallet_purchase — skipping /v1/payments, awaiting webhook', [
+                'order_id' => $order->id,
+            ]);
+            return [
+                'id' => '',
+                'status' => 'pending',
+                'status_detail' => 'wallet_purchase_awaiting_webhook',
+            ];
+        }
+
         $baseUrl = config('app.url', 'http://localhost:8080');
         $webhookUrl = env('MERCADOPAGO_WEBHOOK_URL', $baseUrl . '/api/webhooks/mercadopago/orders');
 
@@ -369,26 +382,42 @@ class MercadoPagoOrderService
             $payment = Payment::where('mp_payment_id', $dataId)->first();
 
             if (!$payment) {
-                // Try to find by preference_id (might be in metadata or we need to query MP)
-                // First, try with a default account to get payment info
                 $payment = Payment::where('mp_preference_id', $dataId)->first();
+            }
 
-                if (!$payment) {
-                    // Try to get payment info from MercadoPago using default account
-                    // This will work if it's the same account, otherwise we'll need to try all accounts
+            // If still not found, fetch the payment from MP iterating all connected accounts.
+            // The webhook only gives us the payment id, so we try each account until one can read it.
+            // Once fetched, we locate the local Payment via external_reference (order_number) or preference_id.
+            $mpPayment = null;
+            if (!$payment) {
+                $accounts = MercadoPagoAccount::where('is_active', true)->whereNotNull('access_token')->get();
+                foreach ($accounts as $candidate) {
                     try {
+                        $this->setAccount($candidate);
                         $mpPayment = $this->getPayment($dataId);
-                        $preferenceId = $mpPayment['preference_id'] ?? null;
-
-                        if ($preferenceId) {
-                            $payment = Payment::where('mp_preference_id', $preferenceId)->first();
-                        }
+                        break;
                     } catch (\Exception $e) {
-                        // If default account fails, try to find payment by checking all companies
-                        // This is a fallback - ideally we should store which account was used
-                        Log::info('Trying to find payment by checking all companies', [
-                            'mp_payment_id' => $dataId,
-                        ]);
+                        $mpPayment = null;
+                        continue;
+                    }
+                }
+
+                if ($mpPayment) {
+                    $externalReference = $mpPayment['external_reference'] ?? null;
+                    $preferenceId = $mpPayment['preference_id'] ?? null;
+
+                    if ($externalReference) {
+                        $order = Order::where('order_number', $externalReference)->first();
+                        if ($order) {
+                            $payment = Payment::where('order_id', $order->id)
+                                ->where('payment_method', 'mercadopago')
+                                ->latest('id')
+                                ->first();
+                        }
+                    }
+
+                    if (!$payment && $preferenceId) {
+                        $payment = Payment::where('mp_preference_id', $preferenceId)->first();
                     }
                 }
             }
@@ -396,6 +425,7 @@ class MercadoPagoOrderService
             if (!$payment) {
                 Log::warning('MercadoPago Payment Not Found', [
                     'mp_payment_id' => $dataId,
+                    'mp_payment_fetched' => (bool) $mpPayment,
                 ]);
                 return;
             }

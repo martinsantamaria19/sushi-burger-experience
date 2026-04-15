@@ -292,13 +292,24 @@
 
                 @foreach($items as $item)
                     @php
-                        if ($item->cartItemVariants->isNotEmpty() && $item->cartItemVariants->first()->productVariant && $item->cartItemVariants->first()->productVariant->image_path) {
-                            $itemImage = storage_url($item->cartItemVariants->first()->productVariant->image_path);
-                        } elseif ($item->product_variant_id && $item->productVariant && $item->productVariant->image_path) {
-                            $itemImage = storage_url($item->productVariant->image_path);
-                        } else {
-                            $itemImage = $item->product->image_path ? (str_starts_with($item->product->image_path, 'http') ? $item->product->image_path : storage_url($item->product->image_path)) : null;
+                        $itemImage = null;
+
+                        // 1) Imagen desde la primera variante del item (si existe y tiene variant con imagen)
+                        $firstCartItemVariant = $item->cartItemVariants->first();
+                        if ($firstCartItemVariant && $firstCartItemVariant->productVariant && $firstCartItemVariant->productVariant->image_path) {
+                            $itemImage = storage_url($firstCartItemVariant->productVariant->image_path);
                         }
+                        // 2) Imagen desde productVariant directo del item
+                        elseif ($item->product_variant_id && $item->productVariant && $item->productVariant->image_path) {
+                            $itemImage = storage_url($item->productVariant->image_path);
+                        }
+                        // 3) Imagen del producto base
+                        elseif ($item->product && $item->product->image_path) {
+                            $itemImage = str_starts_with($item->product->image_path, 'http')
+                                ? $item->product->image_path
+                                : storage_url($item->product->image_path);
+                        }
+
                         $itemName = $item->display_name;
                     @endphp
                     <div class="cart-item" data-item-id="{{ $item->id }}">

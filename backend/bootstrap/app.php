@@ -14,12 +14,18 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->statefulApi();
+
+        // Middleware global para el modo desarrollo (sitio en construcción)
+        $middleware->appendToGroup('web', [
+            \App\Http\Middleware\DevelopmentMode::class,
+        ]);
+
         // Excluir webhook de MercadoPago del CSRF
         $middleware->validateCsrfTokens(except: [
             'api/webhooks/mercadopago',
             'webhooks/mercadopago',
         ]);
-        
+
         $middleware->alias([
             'super_admin' => \App\Http\Middleware\SuperAdminMiddleware::class,
         ]);

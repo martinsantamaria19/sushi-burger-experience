@@ -161,6 +161,7 @@ class DashboardController extends Controller
             'name' => 'required|string|max:255',
             'currency' => 'required|string|size:3|in:UYU,USD,ARS,EUR',
             'bank_transfer_enabled' => 'nullable|boolean',
+            'development_mode' => 'nullable|boolean',
         ]);
 
         // Generate slug from company name if it changed
@@ -180,6 +181,9 @@ class DashboardController extends Controller
         $settings = $company->settings ?? [];
         if ($request->has('bank_transfer_enabled')) {
             $settings['bank_transfer_enabled'] = (bool) $request->bank_transfer_enabled;
+        }
+        if ($request->has('development_mode')) {
+            $settings['development_mode'] = (bool) $request->development_mode;
         }
 
         $company->update([

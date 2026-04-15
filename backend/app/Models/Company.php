@@ -97,6 +97,15 @@ class Company extends Model
         $settings = $this->settings ?? [];
         return (bool) ($settings['bank_transfer_enabled'] ?? true);
     }
+
+    /**
+     * Check if the company is in development mode (public site under construction).
+     */
+    public function isInDevelopmentMode(): bool
+    {
+        $settings = $this->settings ?? [];
+        return (bool) ($settings['development_mode'] ?? false);
+    }
 }
 
 
