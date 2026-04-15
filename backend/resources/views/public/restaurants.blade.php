@@ -124,7 +124,7 @@
             padding: 0.5rem;
         }
 
-        /* Hero fullscreen con fondo en mobile */
+        /* Hero fullscreen con video de fondo */
         .hero-landing {
             position: relative;
             min-height: 100vh;
@@ -132,31 +132,39 @@
             display: flex;
             flex-direction: column;
             padding-bottom: max(80px, env(safe-area-inset-bottom, 0px) + 60px);
+            overflow: hidden;
+            background: var(--color-bg);
         }
 
-        @media (max-width: 767.98px) {
-            .hero-landing {
-                background: var(--color-bg) url('{{ asset("assets/img/bg-sushiburger.webp") }}') no-repeat center bottom;
-                background-size: cover;
-            }
-            .hero-landing::before {
-                content: '';
-                position: absolute;
-                inset: 0;
-                background: linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 40%, rgba(0,0,0,0.3) 100%);
-                pointer-events: none;
-            }
+        .hero-video-bg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center bottom;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .hero-landing::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 40%, rgba(0,0,0,0.3) 100%);
+            pointer-events: none;
+            z-index: 1;
         }
 
         @media (min-width: 768px) {
-            .hero-landing {
-                background: linear-gradient(135deg, var(--color-bg) 0%, rgba(var(--color-primary-rgb), 0.08) 50%, var(--color-bg) 100%);
+            .hero-video-bg {
+                object-position: center center;
             }
         }
 
         .hero-content {
             position: relative;
-            z-index: 1;
+            z-index: 2;
             flex: 1;
             display: flex;
             flex-direction: column;
@@ -292,6 +300,9 @@
 
 <!-- Hero landing -->
 <div class="hero-landing">
+    <video class="hero-video-bg" autoplay muted loop playsinline preload="auto">
+        <source src="{{ asset('assets/img/bg-sushiburger-video.mp4') }}" type="video/mp4">
+    </video>
     <div class="hero-content">
         <div class="d-flex align-items-center justify-content-between mb-1">
             <div class="brand-text">
