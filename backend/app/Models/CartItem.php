@@ -21,6 +21,7 @@ class CartItem extends Model
         'price',
         'notes',
         'gluten_free',
+        'grilled_salmon',
     ];
 
     protected $casts = [
@@ -29,6 +30,7 @@ class CartItem extends Model
         'restaurant_id' => 'integer',
         'product_id' => 'integer',
         'gluten_free' => 'boolean',
+        'grilled_salmon' => 'boolean',
     ];
 
     /**
@@ -73,6 +75,9 @@ class CartItem extends Model
             if ($this->gluten_free) {
                 $name .= ' (Sin gluten)';
             }
+            if ($this->grilled_salmon) {
+                $name .= ' (Con Salmón grillado)';
+            }
             return $name;
         }
         if ($this->relationLoaded('cartItemVariants') && $this->cartItemVariants->isNotEmpty()) {
@@ -82,6 +87,9 @@ class CartItem extends Model
                     : 'Variante';
                 if ($civ->gluten_free) {
                     $n .= ' (Sin gluten)';
+                }
+                if ($civ->grilled_salmon) {
+                    $n .= ' (Con Salmón grillado)';
                 }
                 return $n;
             });

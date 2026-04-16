@@ -17,12 +17,14 @@ class ProductVariant extends Model
         'image_path',
         'price',
         'is_gluten_free_available',
+        'is_grilled_salmon_available',
         'sort_order',
     ];
 
     protected $casts = [
         'price' => 'decimal:2',
         'is_gluten_free_available' => 'boolean',
+        'is_grilled_salmon_available' => 'boolean',
         'sort_order' => 'integer',
     ];
 

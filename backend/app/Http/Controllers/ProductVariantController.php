@@ -25,11 +25,13 @@ class ProductVariantController extends Controller
             'image_path' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'price' => 'nullable|numeric|min:0',
             'is_gluten_free_available' => 'boolean',
+            'is_grilled_salmon_available' => 'boolean',
             'sort_order' => 'nullable|integer',
         ]);
 
-        $data = $request->only(['name', 'ingredients', 'price', 'is_gluten_free_available', 'sort_order']);
+        $data = $request->only(['name', 'ingredients', 'price', 'is_gluten_free_available', 'is_grilled_salmon_available', 'sort_order']);
         $data['is_gluten_free_available'] = (bool) ($data['is_gluten_free_available'] ?? false);
+        $data['is_grilled_salmon_available'] = (bool) ($data['is_grilled_salmon_available'] ?? false);
         $data['sort_order'] = (int) ($data['sort_order'] ?? 0);
 
         if ($request->hasFile('image_path')) {
@@ -53,12 +55,16 @@ class ProductVariantController extends Controller
             'image_path' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'price' => 'nullable|numeric|min:0',
             'is_gluten_free_available' => 'boolean',
+            'is_grilled_salmon_available' => 'boolean',
             'sort_order' => 'nullable|integer',
         ]);
 
-        $data = $request->only(['name', 'ingredients', 'price', 'is_gluten_free_available', 'sort_order']);
+        $data = $request->only(['name', 'ingredients', 'price', 'is_gluten_free_available', 'is_grilled_salmon_available', 'sort_order']);
         if (array_key_exists('is_gluten_free_available', $data)) {
             $data['is_gluten_free_available'] = (bool) $data['is_gluten_free_available'];
+        }
+        if (array_key_exists('is_grilled_salmon_available', $data)) {
+            $data['is_grilled_salmon_available'] = (bool) $data['is_grilled_salmon_available'];
         }
         if (array_key_exists('sort_order', $data)) {
             $data['sort_order'] = (int) $data['sort_order'];

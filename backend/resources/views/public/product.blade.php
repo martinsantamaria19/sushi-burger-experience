@@ -136,7 +136,7 @@
                     </button>
                 </div>
                 @foreach($product->variants as $v)
-                    <div class="variant-card" data-variant-id="{{ $v->id }}" data-variant-name="{{ e($v->name) }}" data-variant-gluten-available="{{ $v->is_gluten_free_available ? '1' : '0' }}">
+                    <div class="variant-card" data-variant-id="{{ $v->id }}" data-variant-name="{{ e($v->name) }}" data-variant-gluten-available="{{ $v->is_gluten_free_available ? '1' : '0' }}" data-variant-salmon-available="{{ $v->is_grilled_salmon_available ? '1' : '0' }}">
                         @if($v->image_path)
                             <img src="{{ storage_url($v->image_path) }}" alt="{{ $v->name }}" class="variant-card-img">
                         @else
@@ -152,6 +152,11 @@
                             @if($v->is_gluten_free_available)
                                 <label class="variant-gluten-label variant-gluten-multi" data-variant-id="{{ $v->id }}">
                                     <input type="checkbox" class="variant-gluten-cb-multi" data-variant-id="{{ $v->id }}"> Sin gluten
+                                </label>
+                            @endif
+                            @if($v->is_grilled_salmon_available)
+                                <label class="variant-gluten-label variant-salmon-multi" data-variant-id="{{ $v->id }}">
+                                    <input type="checkbox" class="variant-salmon-cb-multi" data-variant-id="{{ $v->id }}"> La quiero con el Salmón grillado
                                 </label>
                             @endif
                             <button type="button" class="btn-elegir btn-elegir-variant" data-variant-id="{{ $v->id }}">Elegir esta variante</button>
@@ -176,7 +181,12 @@
                             @endif
                             @if($v->is_gluten_free_available)
                                 <label class="variant-gluten-label">
-                                    <input type="checkbox" class="variant-gluten-cb" data-variant-id="{{ $v->id }}"> Quiero esta variante sin gluten
+                                    <input type="checkbox" class="variant-gluten-cb" data-variant-id="{{ $v->id }}"> La quiero Gluten Free (Opción Fría)
+                                </label>
+                            @endif
+                            @if($v->is_grilled_salmon_available)
+                                <label class="variant-gluten-label">
+                                    <input type="checkbox" class="variant-salmon-cb" data-variant-id="{{ $v->id }}"> La quiero con el Salmón grillado
                                 </label>
                             @endif
                             <button type="button" class="btn-add-variant-cart" data-product-id="{{ $product->id }}" data-variant-id="{{ $v->id }}">
@@ -246,7 +256,10 @@
         function renderSelection() {
             selectionCount.textContent = selection.length;
             selectionList.innerHTML = selection.map(function(s, i) {
-                return '<span class="selection-chip">' + s.name + (s.gluten_free ? ' (Sin gluten)' : '') +
+                var label = s.name;
+                if (s.gluten_free) label += ' (Sin gluten)';
+                if (s.grilled_salmon) label += ' (Con Salmón grillado)';
+                return '<span class="selection-chip">' + label +
                     '<button type="button" onclick="removeSelection(' + i + ')" aria-label="Quitar"><i data-lucide="x" style="width:14px;height:14px;"></i></button></span>';
             }).join('');
             if (typeof lucide !== 'undefined') lucide.createIcons();
@@ -267,7 +280,9 @@
                 var name = card.dataset.variantName || 'Variante';
                 var glutenCb = document.querySelector('.variant-gluten-cb-multi[data-variant-id="' + variantId + '"]');
                 var glutenFree = glutenCb ? glutenCb.checked : false;
-                selection.push({ variant_id: variantId, gluten_free: glutenFree, name: name });
+                var salmonCb = document.querySelector('.variant-salmon-cb-multi[data-variant-id="' + variantId + '"]');
+                var grilledSalmon = salmonCb ? salmonCb.checked : false;
+                selection.push({ variant_id: variantId, gluten_free: glutenFree, grilled_salmon: grilledSalmon, name: name });
                 renderSelection();
             });
         });
@@ -280,7 +295,7 @@
             var payload = {
                 product_id: productId,
                 quantity: 1,
-                selections: selection.map(function(s) { return { variant_id: s.variant_id, gluten_free: s.gluten_free }; })
+                selections: selection.map(function(s) { return { variant_id: s.variant_id, gluten_free: s.gluten_free, grilled_salmon: s.grilled_salmon }; })
             };
             fetch('/cart/add', {
                 method: 'POST',
@@ -323,6 +338,7 @@
                 var pid = this.dataset.productId;
                 var variantId = this.dataset.variantId ? parseInt(this.dataset.variantId, 10) : null;
                 var glutenFree = variantId ? (document.querySelector('.variant-gluten-cb[data-variant-id="' + variantId + '"]')?.checked ?? false) : false;
+                var grilledSalmon = variantId ? (document.querySelector('.variant-salmon-cb[data-variant-id="' + variantId + '"]')?.checked ?? false) : false;
 
                 this.disabled = true;
                 var origText = this.textContent;
@@ -339,7 +355,8 @@
                         product_id: pid,
                         product_variant_id: variantId || null,
                         quantity: 1,
-                        gluten_free: glutenFree
+                        gluten_free: glutenFree,
+                        grilled_salmon: grilledSalmon
                     })
                 })
                 .then(r => r.json())

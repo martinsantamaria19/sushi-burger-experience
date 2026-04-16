@@ -22,6 +22,7 @@ class OrderItem extends Model
         'subtotal',
         'notes',
         'gluten_free',
+        'grilled_salmon',
     ];
 
     protected $casts = [
@@ -29,6 +30,7 @@ class OrderItem extends Model
         'quantity' => 'integer',
         'subtotal' => 'decimal:2',
         'gluten_free' => 'boolean',
+        'grilled_salmon' => 'boolean',
         'variant_selections' => 'array',
     ];
 
@@ -62,6 +64,9 @@ class OrderItem extends Model
                 if (!empty($v['gluten_free'])) {
                     $n .= ' (Sin gluten)';
                 }
+                if (!empty($v['grilled_salmon'])) {
+                    $n .= ' (Con Salmón grillado)';
+                }
                 return $n;
             }, $this->variant_selections);
             $name .= ' - ' . implode(', ', $parts);
@@ -69,6 +74,9 @@ class OrderItem extends Model
             $name .= ' - ' . $this->variant_name;
             if ($this->gluten_free) {
                 $name .= ' (Sin gluten)';
+            }
+            if ($this->grilled_salmon) {
+                $name .= ' (Con Salmón grillado)';
             }
         }
         return $name;

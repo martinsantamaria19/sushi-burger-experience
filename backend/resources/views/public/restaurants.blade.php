@@ -124,6 +124,11 @@
             padding: 0.5rem;
         }
 
+        .btn-pedir-ahora {
+            position: absolute!important;
+            bottom: 50px!important;
+        }
+
         /* Hero fullscreen con video de fondo */
         .hero-landing {
             position: relative;

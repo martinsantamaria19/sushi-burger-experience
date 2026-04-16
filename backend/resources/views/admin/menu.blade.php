@@ -258,9 +258,13 @@
                 <div id="variantImagePreview" class="mb-3 rounded-3 overflow-hidden d-none" style="height: 120px; background: rgba(255,255,255,0.05); border: 1px solid var(--color-border);">
                     <img src="" class="w-100 h-100" style="object-fit: cover;" id="variantImagePreviewImg">
                 </div>
-                <div class="mb-4 form-check">
+                <div class="mb-3 form-check">
                     <input type="checkbox" class="form-check-input" name="is_gluten_free_available" id="variantGlutenFree" value="1">
                     <label class="form-check-label" for="variantGlutenFree">Disponible opción sin gluten</label>
+                </div>
+                <div class="mb-4 form-check">
+                    <input type="checkbox" class="form-check-input" name="is_grilled_salmon_available" id="variantGrilledSalmon" value="1">
+                    <label class="form-check-label" for="variantGrilledSalmon">Disponible opción con Salmón grillado</label>
                 </div>
                 <div class="d-flex gap-3">
                     <button type="button" class="btn btn-cartify-secondary flex-grow-1 py-3" data-bs-dismiss="modal">Cancelar</button>
@@ -781,6 +785,7 @@
                         <div class="flex-grow-1 min-w-0">
                             <span class="fw-bold">${escapeHtml(v.name)}</span>
                             ${v.is_gluten_free_available ? '<span class="badge bg-success ms-1">Sin gluten</span>' : ''}
+                            ${v.is_grilled_salmon_available ? '<span class="badge bg-warning text-dark ms-1">Salmón grillado</span>' : ''}
                         </div>
                         <button type="button" class="icon-btn p-1" onclick="window.editVariant(${v.id}, ${productId})" title="Editar"><i data-lucide="edit-3" style="width:14px;"></i></button>
                         <button type="button" class="icon-btn p-1 hover-danger" onclick="window.deleteVariant(${v.id}, '${escapeHtml(v.name).replace(/'/g, "\\'")}')" title="Eliminar"><i data-lucide="trash" style="width:14px;"></i></button>
@@ -822,6 +827,7 @@
             document.getElementById('variantIngredients').value = v.ingredients || '';
             document.getElementById('variantPrice').value = v.price ?? '';
             document.getElementById('variantGlutenFree').checked = !!v.is_gluten_free_available;
+            document.getElementById('variantGrilledSalmon').checked = !!v.is_grilled_salmon_available;
             document.getElementById('variantModalTitle').innerText = 'Editar variante';
             document.getElementById('variantSubmitBtn').innerText = 'Guardar cambios';
             const preview = document.getElementById('variantImagePreview');
@@ -871,6 +877,7 @@
             formData.delete('variant_id');
             formData.delete('product_id');
             formData.set('is_gluten_free_available', document.getElementById('variantGlutenFree').checked ? '1' : '0');
+            formData.set('is_grilled_salmon_available', document.getElementById('variantGrilledSalmon').checked ? '1' : '0');
             const productIdForVariant = document.getElementById('variantProductId').value;
             const url = variantId
                 ? `${apiBase}/product-variants/${variantId}`

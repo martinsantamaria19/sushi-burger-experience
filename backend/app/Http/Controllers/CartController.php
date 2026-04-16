@@ -69,9 +69,11 @@ class CartController extends Controller
             'quantity' => 'integer|min:1|max:99',
             'notes' => 'nullable|string|max:500',
             'gluten_free' => 'boolean',
+            'grilled_salmon' => 'boolean',
             'selections' => 'nullable|array',
             'selections.*.variant_id' => 'required_with:selections|exists:product_variants,id',
             'selections.*.gluten_free' => 'boolean',
+            'selections.*.grilled_salmon' => 'boolean',
         ]);
 
         $product = Product::with('variants')->findOrFail($request->product_id);
@@ -96,6 +98,13 @@ class CartController extends Controller
                     return response()->json([
                         'success' => false,
                         'message' => "La variante {$variant->name} no está disponible sin gluten",
+                    ], 400);
+                }
+                $gs = (bool) ($sel['grilled_salmon'] ?? false);
+                if ($gs && !$variant->is_grilled_salmon_available) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "La variante {$variant->name} no está disponible con salmón grillado",
                     ], 400);
                 }
             }
@@ -132,6 +141,9 @@ class CartController extends Controller
                         if ((bool) ($sel['gluten_free'] ?? false) !== $itemSorted[$i]->gluten_free) {
                             return false;
                         }
+                        if ((bool) ($sel['grilled_salmon'] ?? false) !== $itemSorted[$i]->grilled_salmon) {
+                            return false;
+                        }
                     }
                     return true;
                 });
@@ -157,11 +169,13 @@ class CartController extends Controller
                 'price' => $price,
                 'notes' => $request->notes,
                 'gluten_free' => false,
+                'grilled_salmon' => false,
             ]);
             foreach ($selections as $idx => $sel) {
                 $cartItem->cartItemVariants()->create([
                     'product_variant_id' => (int) $sel['variant_id'],
                     'gluten_free' => (bool) ($sel['gluten_free'] ?? false),
+                    'grilled_salmon' => (bool) ($sel['grilled_salmon'] ?? false),
                     'sort_order' => $idx,
                 ]);
             }
@@ -174,9 +188,10 @@ class CartController extends Controller
             ]);
         }
 
-        // Flujo single-variante (product_variant_id + gluten_free)
+        // Flujo single-variante (product_variant_id + gluten_free + grilled_salmon)
         $variantId = $request->product_variant_id ? (int) $request->product_variant_id : null;
         $glutenFree = (bool) $request->gluten_free;
+        $grilledSalmon = (bool) $request->grilled_salmon;
 
         if ($variantId) {
             $variant = $product->variants->firstWhere('id', $variantId);
@@ -187,6 +202,12 @@ class CartController extends Controller
                 return response()->json([
                     'success' => false,
                     'message' => 'Esta variante no está disponible en opción sin gluten',
+                ], 400);
+            }
+            if ($grilledSalmon && !$variant->is_grilled_salmon_available) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Esta variante no está disponible con salmón grillado',
                 ], 400);
             }
         } elseif ($product->variants->isNotEmpty()) {
@@ -214,6 +235,7 @@ class CartController extends Controller
             ->where('product_id', $product->id)
             ->where('product_variant_id', $variantId)
             ->where('gluten_free', $glutenFree)
+            ->where('grilled_salmon', $grilledSalmon)
             ->first();
 
         if ($existingItem) {
@@ -237,6 +259,7 @@ class CartController extends Controller
             'price' => $price,
             'notes' => $request->notes,
             'gluten_free' => $glutenFree,
+            'grilled_salmon' => $grilledSalmon,
         ]);
 
         return response()->json([

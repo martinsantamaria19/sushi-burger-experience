@@ -11,11 +11,13 @@ class CartItemVariant extends Model
         'cart_item_id',
         'product_variant_id',
         'gluten_free',
+        'grilled_salmon',
         'sort_order',
     ];
 
     protected $casts = [
         'gluten_free' => 'boolean',
+        'grilled_salmon' => 'boolean',
         'sort_order' => 'integer',
     ];
 

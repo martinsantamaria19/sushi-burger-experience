@@ -141,6 +141,7 @@ class OrderController extends Controller
                         return [
                             'variant_name' => $civ->productVariant ? $civ->productVariant->name : 'Variante',
                             'gluten_free' => $civ->gluten_free,
+                            'grilled_salmon' => $civ->grilled_salmon,
                         ];
                     })->toArray();
                     $variantName = $cartItem->cartItemVariants->map(fn ($civ) => $civ->productVariant ? $civ->productVariant->name : '')->filter()->implode(', ');
@@ -159,6 +160,7 @@ class OrderController extends Controller
                     'subtotal' => $cartItem->subtotal,
                     'notes' => $cartItem->notes,
                     'gluten_free' => $cartItem->gluten_free ?? false,
+                    'grilled_salmon' => $cartItem->grilled_salmon ?? false,
                 ]);
             }
 
